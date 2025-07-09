@@ -157,7 +157,7 @@ class CaptureController(QObject):
 
         if self.modo_edicion and Path(ruta).exists():
             respuesta = QMessageBox.question(
-                self.ui,
+                self.mw,
                 f"Reemplazar {tipo}",
                 f"Ya existe una {tipo} para este folio.\n¿Deseas reemplazarla?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
