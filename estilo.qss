@@ -1,0 +1,159 @@
+/* === GLOBAL === */
+/* {
+    font-family: "Segoe UI", "Roboto", "Arial";
+    font-size: 14px;
+    color: #000000;
+}
+
+/* === MAIN WINDOW BACKGROUND === */
+QMainWindow {
+    background-color: #1A6794;
+}
+
+/* === WIDGET LATERAL CON BOTONES === */
+QWidget#buttonsBar {
+    background-color: #145577;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    padding: 12px;
+}
+
+/* === BOTONES DEL MENÚ LATERAL === */
+QPushButton {
+    background-color: #2088BB;
+    color: #FFFFFF;
+    border-radius: 8px;
+    padding: 8px 16px;
+    border: 1px solid #0E4F6B;
+    margin-bottom: 10px;
+}
+
+QPushButton:hover {
+    background-color: #5CB0E5;
+    color: black;
+}
+
+QPushButton:pressed {
+    background-color: #0E4F6B;
+}
+
+/* === FRAME CONTENEDOR DEL STACKED === */
+QFrame#index {
+    background-color: #D0E6F5;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding: 16px;
+
+
+}
+
+QFrame#frameIndex {
+    background-color: #D0E6F5;
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    padding: 16px;
+
+
+}
+
+/* === STACKEDWIDGET === */
+QStackedWidget {
+    background-color: transparent;
+    border: none;
+
+}
+
+QWidget#viewCaptura{
+    alternate-background-color: #D0E6F5;
+    background-color: #F0F4F8;
+    color: #000000;
+    gridline-color: #B0C4D6;
+    border: none;
+    selection-background-color: #5CB0E5;
+}
+
+
+
+QFrame#frameDatosL{
+    background-color: #F0F4F8;
+    alternate-background-color: #D0E6F5;
+    color: #000000;
+
+}
+QFrame#frameDatosR{
+    background-color: #F0F4F8;
+    color: #000000;
+
+}
+
+QFrame#frameFotoF{
+    background-color: #F0F4F8;
+    color: #1A1A1A;
+
+    gridline-color: #B0C4D6;
+
+}
+
+QFrame#frameBtn{
+    background-color: transparent;
+
+}
+
+#viewCaptura QLabel{
+    color: #000000;
+}
+#viewCaptura QMessageBox{
+    color: white;
+}
+
+/* === TABLES === */
+QTableView {
+    background-color: #F0F4F8;
+    alternate-background-color: #D0E6F5;
+    color: #1A1A1A;
+    gridline-color: #B0C4D6;
+    border: none;
+    selection-background-color: #5CB0E5;
+    selection-color: black;
+}
+
+
+QHeaderView::section {
+    background-color: #145577;
+    color: white;
+    font-weight: bold;
+    padding: 6px;
+    border: none;
+}
+
+/* === INPUTS === */
+QLineEdit, QComboBox, QTextEdit {
+    background-color: #FFFFFF;
+    color: #1A1A1A;
+    border-radius: 6px;
+    padding: 6px 10px;
+    border: 1px solid #B0C4D6;
+}
+
+QLineEdit::placeholder {
+    color: #808080;
+    font-style: italic;
+}
+
+/* === GROUPBOX === */
+QGroupBox {
+    background-color: #FFFFFF;
+    border: 1px solid #B0C4D6;
+    border-radius: 8px;
+    margin-top: 12px;
+    padding: 10px;
+/*    color: #1A1A1A; */
+}
+
+QGroupBox:title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 4px;
+    color: #145577;
+    font-weight: bold;
+}
