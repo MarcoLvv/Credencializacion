@@ -38,72 +38,38 @@ class CameraPreview:
 		self.timer.stop()
 		if self.cap.isOpened():
 			self.cap.release()
-	
+
 	def update_frame(self):
 		ret, frame = self.cap.read()
 		if not ret:
 			return
-		
+
 		target_size = self.label.size()
 		resized_frame = cv2.resize(frame, (target_size.width(), target_size.height()))
+
+		# 👉 Guardar una copia limpia (sin líneas) para capturar
 		self.frame_actual = resized_frame.copy()
-		
-		# Dibujar cruz guía
+
+		# Dibujar cruz guía en la copia para mostrar
 		h, w, _ = resized_frame.shape
 		cv2.line(resized_frame, (w // 2, 0), (w // 2, h), (0, 255, 0), 1)
 		cv2.line(resized_frame, (0, h // 2), (w, h // 2), (0, 255, 0), 1)
-		
+
 		# Convertir a QImage
 		rgb_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
 		qimg = QImage(rgb_frame.data, w, h, w * 3, QImage.Format.Format_RGB888)
 		pixmap = QPixmap.fromImage(qimg)
-		scaled_pixmap = pixmap.scaled(self.label.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+
+		scaled_pixmap = pixmap.scaled(
+			self.label.size(),
+			Qt.AspectRatioMode.KeepAspectRatio,
+			Qt.TransformationMode.SmoothTransformation
+		)
 		self.label.setPixmap(scaled_pixmap)
-	
+
 	def get_captured_frame(self):
 		return self.frame_actual.copy() if self.frame_actual is not None else None
 
-
-class MainWindow(QMainWindow):
-	def __init__(self):
-		super().__init__()
-		self.setWindowTitle("Selector de Cámara")
-		
-		# Crear widgets
-		self.label_video = QLabel("Vista previa de cámara")
-		self.label_video.setFixedSize(640, 480)
-		self.combo_camaras = QComboBox()
-		self.btn_iniciar = QPushButton("Iniciar cámara")
-		
-		# Layout
-		layout = QVBoxLayout()
-		layout.addWidget(self.combo_camaras)
-		layout.addWidget(self.btn_iniciar)
-		layout.addWidget(self.label_video)
-		
-		container = QWidget()
-		container.setLayout(layout)
-		self.setCentralWidget(container)
-		
-		# Lógica
-		self.camera_preview = None
-		self.detectar_camaras()
-		
-		self.btn_iniciar.clicked.connect(self.iniciar_camara)
-	
-	def detectar_camaras(self):
-		for i in range(5):
-			cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)
-			if cap.isOpened():
-				self.combo_camaras.addItem(f"Cámara {i}", i)
-				cap.release()
-	
-	def iniciar_camara(self):
-		index = self.combo_camaras.currentData()
-		if self.camera_preview:
-			self.camera_preview.stop()
-		self.camera_preview = CameraPreview(self.label_video, index)
-		self.camera_preview.start()
 
 
 

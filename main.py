@@ -1,10 +1,11 @@
 import sys
 import os
 import json
-from PySide6.QtWidgets import QApplication, QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox, QDialog
 from src.controllers.main_controller import VistaPrincipal
+from src.controllers.modulo_dialog import ModuloDialog
 from src.database.db_manager import init_db
-from src.utils.config_manager import CONFIG_PATH
+from src.utils.config_manager import CONFIG_PATH, get_module_id
 
 
 def crear_config_si_no_existe():
@@ -24,34 +25,38 @@ def crear_config_si_no_existe():
             sys.exit(1)
 
 
+
 def main():
     # Crear carpeta 'data' si no existe
     os.makedirs("data", exist_ok=True)
 
     # Crear configuración inicial si es necesario
-    crear_config_si_no_existe()
+    if not os.path.exists(CONFIG_PATH) or not get_module_id():
+        app = QApplication(sys.argv)  # Inicializar Qt antes de mostrar el diálogo
+        dlg = ModuloDialog()
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            QMessageBox.critical(None, "Error", "Debe ingresar un módulo válido para continuar.")
+            sys.exit(1)
 
     # Inicializar la base de datos
     try:
         init_db()
         print("Tablas creadas.")
-
     except Exception as e:
         print(f"[ERROR] Error al inicializar la base de datos: {e}")
-
         sys.exit(1)
 
     app = QApplication(sys.argv)
-    # Inicializar la app Qt
-    with open("./estilo.qss", "r") as f:
+    # with open("./estilo.qss", "r") as f:
+    #     style = f.read()
+    #     app.setStyleSheet(style)
+    with open("estilo.qss", "r", encoding="utf-8") as f:
         style = f.read()
-        
         app.setStyleSheet(style)
-      
+
     window = VistaPrincipal()
     window.show()
 
-    # Ejecutar loop de eventos Qt
     try:
         sys.exit(app.exec())
     except Exception as e:

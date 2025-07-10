@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'propuesta_principal.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -16,11 +16,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QHeaderView,
-    QLabel, QLineEdit, QMainWindow, QPushButton,
-    QSizePolicy, QSpacerItem, QStackedWidget, QStatusBar,
-    QTableView, QVBoxLayout, QWidget)
-#import background_rc
+from PySide6.QtWidgets import (QApplication, QDateEdit, QDateTimeEdit, QFrame,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
+    QStackedWidget, QStatusBar, QTableView, QVBoxLayout,
+    QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -264,10 +264,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.txt_domicilio)
 
-        self.domicilio = QLineEdit(self.frameDatosL)
-        self.domicilio.setObjectName(u"domicilio")
+        self.fechaNacimiento = QDateEdit(self.frameDatosL)
+        self.fechaNacimiento.setObjectName(u"fechaNacimiento")
+        self.fechaNacimiento.setCurrentSection(QDateTimeEdit.Section.YearSection)
 
-        self.verticalLayout_4.addWidget(self.domicilio)
+        self.verticalLayout_4.addWidget(self.fechaNacimiento)
 
         self.txt_calle = QLabel(self.frameDatosL)
         self.txt_calle.setObjectName(u"txt_calle")
@@ -519,7 +520,7 @@ class Ui_MainWindow(object):
         self.labelFondo.setObjectName(u"labelFondo")
         self.labelFondo.setGeometry(QRect(0, 0, 501, 301))
         self.labelFondo.setStyleSheet(u"image: url(:/layout/front.png);\n"
-"background-size:cover;")
+"")
         self.labelFondo.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
         self.labelDomicilioCredencial = QLabel(self.frameFrontal)
         self.labelDomicilioCredencial.setObjectName(u"labelDomicilioCredencial")
@@ -634,7 +635,8 @@ class Ui_MainWindow(object):
         self.txt_paterno.setText(QCoreApplication.translate("MainWindow", u"Paterno", None))
         self.txt_materno.setText(QCoreApplication.translate("MainWindow", u"Materno", None))
         self.txt_curp.setText(QCoreApplication.translate("MainWindow", u"CURP", None))
-        self.txt_domicilio.setText(QCoreApplication.translate("MainWindow", u"Domicilio", None))
+        self.txt_domicilio.setText(QCoreApplication.translate("MainWindow", u"Fecha De Nacimiento", None))
+        self.fechaNacimiento.setDisplayFormat(QCoreApplication.translate("MainWindow", u"yyyy/MM/dd", None))
         self.txt_calle.setText(QCoreApplication.translate("MainWindow", u"Calle", None))
         self.txt_lote.setText(QCoreApplication.translate("MainWindow", u"Lote", None))
         self.txt_manzana.setText(QCoreApplication.translate("MainWindow", u"Manzana", None))

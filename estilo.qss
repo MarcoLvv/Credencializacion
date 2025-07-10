@@ -127,7 +127,7 @@ QHeaderView::section {
 }
 
 /* === INPUTS === */
-QLineEdit, QComboBox, QTextEdit {
+QLineEdit, QComboBox, QTextEdit, QDateEdit{
     background-color: #FFFFFF;
     color: #1A1A1A;
     border-radius: 6px;

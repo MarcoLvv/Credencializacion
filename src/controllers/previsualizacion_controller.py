@@ -34,25 +34,16 @@ class PrevisualizacionController:
         self.ui.labelFondoPosterior.setScaledContents(True)
         self.ui.labelQrWhatsapp.setPixmap(QPixmap(str(fondo_path_qr)))
         self.ui.labelQrWhatsapp.setScaledContents(True)
-        
+
         # Habilita el ajuste automático del texto
         self.ui.labelNombreCredencial.setWordWrap(True)
-        
+
         # Si estás usando layouts, asegúrate que el layout permita crecimiento vertical
         self.ui.labelNombreCredencial.setSizePolicy(
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Maximum
         )
 
-
-        nombre = data.Nombre
-        paterno = data.Paterno
-        materno = data.Materno
-        nombre_completo = f"{nombre} {paterno} {materno}"
-
-	        
-        self.ui.labelNombreCredencial.setText(nombre_completo)
-        
         # Habilita el ajuste automático del texto
         self.ui.labelDomicilioCredencial.setWordWrap(True)
         
@@ -61,42 +52,66 @@ class PrevisualizacionController:
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Maximum
         )
-        
-        
-        calle = data.Calle
-        numExterior = data.NumExterior
-        numInterior = data.NumInterior
-        manzana = data.Manzana
-        lote = data.Lote
-        colonia = data.Colonia
-        codigoPostal = data.CodigoPostal
-        municipio = data.Municipio
-    
+        if isinstance(data, dict):
+            folio = data.get("FolioId", "")
+            nombre = data.get("Nombre", "")
+            paterno = data.get("Paterno", "")
+            materno = data.get("Materno", "")
+            curp = data.get("Curp", "")
+            calle = data.get("Calle", "")
+            numExterior = data.get("NumExterior", "")
+            numInterior = data.get("NumInterior", "")
+            manzana = data.get("Manzana", "")
+            lote = data.get("Lote", "")
+            colonia = data.get("Colonia", "")
+            codigoPostal = data.get("CodigoPostal", "")
+            municipio = data.get("Municipio", "")
+            ruta_foto = data.get("RutaFoto", "")
+            ruta_firma = data.get("RutaFima", "")
+
+        else:
+            folio = data.FolioId
+            nombre = data.Nombre
+            paterno = data.Paterno
+            materno = data.Materno
+            curp = data.CURP
+            calle = data.Calle
+            numExterior = data.NumExterior
+            numInterior = data.NumInterior
+            manzana = data.Manzana
+            lote = data.Lote
+            colonia = data.Colonia
+            codigoPostal = data.CodigoPostal
+            municipio = data.Municipio
+            ruta_foto = data.RutaFoto
+            ruta_firma = data.RutaFirma
+
+        nombre_completo = f"{nombre} {paterno} {materno}"
+
+        self.ui.labelNombreCredencial.setText(nombre_completo)
+
         Domicilio = f"""{calle} #{numExterior} {numInterior} {manzana} {codigoPostal} {colonia} {municipio}"""
         self.ui.labelDomicilioCredencial.setText(Domicilio)
-        
-        self.ui.labelCURPCredencial.setText(data.CURP)
-        self.ui.labelFolioCredencial.setText(data.FolioId)
-        
-        ruta_foto = data.RutaFoto
+
+        self.ui.labelCURPCredencial.setText(curp)
+        self.ui.labelFolioCredencial.setText(folio)
+
         if ruta_foto and os.path.exists(ruta_foto):
             self.ui.labelFotoCredencial.setPixmap(QPixmap(ruta_foto))
             self.ui.labelFotoCredencial.setScaledContents(True)
 
-        ruta_firma = data.RutaFirma
         if ruta_firma and os.path.exists(ruta_firma):
             self.ui.labelFirmaCredencial.setPixmap(QPixmap(ruta_firma))
             self.ui.labelFirmaCredencial.setScaledContents(True)
-
 
         # Generar imágenes temporales
         self.generar_imagenes_credencial()
         # Generar y mostrar PDF en webPreview
         self.mostrar_pdf_en_webview()
         #Mostrar imagenes en navegador externo
-        
+
         self.mostrar_pdf_externo()
-    
+
     def mostrar_pdf_externo(self):
         if self.ruta_pdf_temporal:
             webbrowser.open(self.ruta_pdf_temporal)

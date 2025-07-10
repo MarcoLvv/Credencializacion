@@ -1,5 +1,4 @@
 # src/controllers/capture_controller.py
-
 import os
 
 from PySide6.QtCore import QObject, Signal
@@ -49,7 +48,7 @@ class CaptureController(QObject):
 
     
     def _capturar_foto_ui(self):
-        folio = self._obtener_folio_actual()
+        #folio = self._obtener_folio_actual()
         ruta = self.camera.capturar_foto()
         if not ruta:
             QMessageBox.warning(self.ui, "Foto", "No se pudo capturar la foto.")
@@ -66,7 +65,8 @@ class CaptureController(QObject):
     def limpiar_formulario(self):
         for campo in [
             self.ui.nombre, self.ui.paterno, self.ui.materno, self.ui.curp,
-            self.ui.calle, self.ui.lote, self.ui.manzana, self.ui.numExt,
+            self.ui.fechaNacimiento, self.ui.calle, self.ui.lote,
+            self.ui.manzana, self.ui.numExt, self.ui.numInt, self.ui.codigoPostal, self.ui.colonia,
             self.ui.numInt, self.ui.codigoPostal, self.ui.colonia,
             self.ui.municipio, self.ui.seccionElectoral, self.ui.genero,
             self.ui.celular, self.ui.email
@@ -152,12 +152,19 @@ class CaptureController(QObject):
         if label.pixmap() is None:
             return None
 
+        # ruta = ""
+        # if tipo == "foto":
+        #     ruta = get_foto_path(nombre_archivo)
+        # if tipo == "firma":
+        #     ruta = get_firma_path(nombre_archivo)
+        #
+        # ruta = str(ruta)
         ruta = os.path.join("data", tipo, nombre_archivo)
         Path(ruta).parent.mkdir(parents=True, exist_ok=True)
 
         if self.modo_edicion and Path(ruta).exists():
             respuesta = QMessageBox.question(
-                self.ui,
+                self.mw,
                 f"Reemplazar {tipo}",
                 f"Ya existe una {tipo} para este folio.\n¿Deseas reemplazarla?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
@@ -169,6 +176,8 @@ class CaptureController(QObject):
         return ruta
 
     def cargar_para_edicion(self, credencial):
+
+
         self.limpiar_formulario()
         self.modo_edicion = True
         self.credencial_editando = credencial
@@ -177,6 +186,7 @@ class CaptureController(QObject):
         self.ui.paterno.setText(credencial.Paterno)
         self.ui.materno.setText(credencial.Materno)
         self.ui.curp.setText(credencial.CURP)
+        self.ui.fechaNacimiento.setDate(credencial.FechaNacimiento)
         self.ui.calle.setText(credencial.Calle)
         self.ui.lote.setText(credencial.Lote)
         self.ui.manzana.setText(credencial.Manzana)

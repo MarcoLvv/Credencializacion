@@ -1,7 +1,7 @@
+from datetime import date
 from pathlib import Path
-
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import QBuffer, QByteArray
+
 import shutil
 
 def guardar_imagen_desde_label(label, path, modo='guardar'):
@@ -54,11 +54,16 @@ def desconectar_btn_guardar(ui):
 
 
 def recolectar_datos_formulario(ui):
+    fecha_qt = ui.fechaNacimiento.date()
+    fechaNacimiento = date(fecha_qt.year(), fecha_qt.month(), fecha_qt.day())
     return{
+
+
         "Nombre": ui.nombre.text().strip(),
         "Paterno": ui.paterno.text().strip(),
         "Materno": ui.materno.text().strip(),
         "CURP": ui.curp.text().strip(),
+        "FechaNacimiento": fechaNacimiento,
         "Calle": ui.calle.text().strip(),
         "Lote": ui.lote.text().strip(),
         "Manzana": ui.manzana.text().strip(),

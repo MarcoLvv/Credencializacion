@@ -1,7 +1,5 @@
 import os
 import configparser
-from pathlib import Path
-
 from src.utils.rutas import get_configuration
 
 CONFIG_PATH = get_configuration()

@@ -3,17 +3,20 @@ from pathlib import Path
 
 def get_base_dir():
     """
-    Devuelve la carpeta base del launcher (ya sea ejecutable o script .py).
+    Devuelve la carpeta base del launcher (ya sea ejecutable o script).
+    - En modo PyInstaller (producción): la carpeta del ejecutable.
+    - En modo desarrollo: el cwd desde donde se ejecuta el script (usualmente main.py).
     """
-    if getattr(sys, 'frozen', False):  # Ejecutable creado con PyInstaller
+    if getattr(sys, 'frozen', False):  # Ejecutable con PyInstaller
         return Path(sys.executable).parent
-    else:
-        return Path(__file__).resolve().parents[2]  # Ajusta según dónde esté rutas.py
+    return Path.cwd()
+
 
 def get_data_dir():
     """
     Devuelve la carpeta 'data/' junto al launcher. La crea si no existe.
     """
+
     data_dir = get_base_dir() / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
@@ -68,7 +71,7 @@ def get_firma_path(folio_id: str):
 # Rutas Fijas para layouts.
 
 def get_bd_path():
-    return get_data_dir() / "credenciales.db"
+    return get_data_dir()
 
 def get_configuration():
     return get_data_dir() / "config.ini"

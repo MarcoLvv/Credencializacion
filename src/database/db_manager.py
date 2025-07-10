@@ -1,23 +1,34 @@
-import email
-
 from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from src.config.database_config import Base, engine
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosModel
 from src.utils.config_manager import get_module_id
+from src.utils.rutas import get_data_dir
 
 
 def init_db():
-    Base.metadata.create_all(bind=engine)
-    #print("Tablas creadas.")
+    """
+    Crea base.db si no existe y genera las tablas.
+    """
+    db_path = get_data_dir() / "base.db"
+    if not db_path.exists():
+        print("[DB] Creando base de datos inicial...")
+        Base.metadata.create_all(bind=engine)
+
 
 
 class DBManager:
     def __init__(self):
         self.engine = engine
-        #Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
+
+        # Comprobación de base.db
+        db_path = get_data_dir() / "base.db"
+        if not db_path.exists():
+            print("[DBManager] Creando base de datos por primera vez...")
+            init_db()
+
     def get_next_consecutive(self):
         with self.Session() as session:
             count = session.query(func.count(TbcUsuarios.Id)).scalar() + 1
@@ -66,6 +77,7 @@ class DBManager:
             Paterno=datos.get("Paterno", ""),
             Materno=datos.get("Materno", ""),
             CURP=datos.get("CURP", ""),
+            FechaNacimiento=datos.get("fechaNacimiento"),
             Calle=datos.get("Calle", ""),
             Lote=datos.get("Lote", ""),
             Manzana=datos.get("Manzana", ""),
@@ -75,7 +87,7 @@ class DBManager:
             CodigoPostal=datos.get("CodigoPostal", ""),
             Municipio=datos.get("Municipio", ""),
             SeccionElectoral=datos.get("SeccionElectoral", ""),
-            GeneroId=datos.get("GeneroId", ""),
+            GeneroId=datos.get("GeneroId"),
             Celular=datos.get("Celular", ""),
             Email=datos.get("Email", ""),
             RutaFoto=datos.get("ruta_foto", ""),

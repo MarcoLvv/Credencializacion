@@ -129,7 +129,7 @@
           </palette>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="viewHome">
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -382,12 +382,19 @@
                  <item>
                   <widget class="QLabel" name="txt_domicilio">
                    <property name="text">
-                    <string>Domicilio</string>
+                    <string>Fecha De Nacimiento</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="domicilio"/>
+                  <widget class="QDateEdit" name="fechaNacimiento">
+                   <property name="currentSection">
+                    <enum>QDateTimeEdit::Section::YearSection</enum>
+                   </property>
+                   <property name="displayFormat">
+                    <string>yyyy/MM/dd</string>
+                   </property>
+                  </widget>
                  </item>
                  <item>
                   <widget class="QLabel" name="txt_calle">
@@ -891,7 +898,7 @@
                   </property>
                   <property name="styleSheet">
                    <string notr="true">image: url(:/layout/front.png);
-background-size:cover;</string>
+</string>
                   </property>
                   <property name="text">
                    <string/>
@@ -1149,8 +1156,6 @@ background-size:cover;</string>
    <header location="global">QtWebEngineWidgets/QWebEngineView</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../static/layout/background.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

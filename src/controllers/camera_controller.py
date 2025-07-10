@@ -44,36 +44,105 @@ class CameraController:
 
     # ---------- captura y guardado ----------
     def capturar_foto(self) -> str | None:
-        """
-        Captura, mejora, recorta y guarda una foto temporal. Actualiza el QLabel.
-        """
         frame = self.preview.get_captured_frame()
         if frame is None:
             QMessageBox.warning(self.mw, "Captura", "No hay imagen para capturar.")
             return None
 
+        #try:
+            # rostro = self.detectar_y_recortar_rostro(frame)
+            # if rostro is None:
+            #     QMessageBox.warning(self.mw, "Captura", "No se detectó rostro.")
+            #     return None
+
+            # Recorte a proporción 4:5 centrado en rostro
+            # final_img = self.recortar_a_proporcion(frame, rostro, proporcion=(4, 5), salida_px=(800, 1000))
+            #
+            # final_img = self.mejorar_imagen(final_img)
+            #
+            # ruta_foto = self.guardar_foto_temporal(final_img)
+            # if not ruta_foto:
+            #     return None
+
         try:
-            rostro = self.detectar_y_recortar_rostro(frame)
-            if rostro is not None:
-                frame = rostro
+                # 👉 Solo recortar a 4:5 centrado sin detectar rostro
+            final_img = self.recortar_frame_a_4_5(frame, salida_px=(800, 1000))
+            final_img = self.mejorar_imagen(final_img)
 
-            frame = self.mejorar_imagen(frame)
-
-            ruta_foto = self.guardar_foto_temporal(frame)
+            ruta_foto = self.guardar_foto_temporal(final_img)
             if not ruta_foto:
                 return None
 
             self.ultima_ruta = str(ruta_foto)
 
             self.detener_camara()
-            self.mostrar_en_label(frame)
+            self.mostrar_en_label(final_img)  # Mostrar versión final recortada
 
-            print(f"[CameraController] Foto temporal guardada en: {self.ultima_ruta}")
+            print(f"[CameraController] Foto final guardada en: {self.ultima_ruta}")
             return self.ultima_ruta
 
         except Exception as e:
             QMessageBox.critical(self.mw, "Error", f"Ocurrió un error al capturar la foto:\n{e}")
             return None
+
+
+
+    def recortar_frame_a_4_5(self, frame, salida_px=(800, 1000)):
+        h, w = frame.shape[:2]
+        target_ratio = 4 / 5
+
+        # Calcular dimensiones centradas con proporción 4:5
+        new_w = w
+        new_h = int(w / target_ratio)
+
+        if new_h > h:
+            new_h = h
+            new_w = int(h * target_ratio)
+
+        x1 = (w - new_w) // 2
+        y1 = (h - new_h) // 2
+        cropped = frame[y1:y1 + new_h, x1:x1 + new_w]
+
+        return cv2.resize(cropped, salida_px, interpolation=cv2.INTER_AREA)
+
+    def recortar_a_proporcion(self, frame, rostro, proporcion=(4, 5), salida_px=(800, 1000)):
+        """
+        Recorta una imagen con una proporción exacta centrada en el rostro detectado.
+        - frame: imagen original
+        - rostro: recorte del rostro para detectar coordenadas
+        - proporcion: (ancho, alto) deseado
+        - salida_px: resolución final
+        """
+        # Obtener tamaño original
+        h_frame, w_frame = frame.shape[:2]
+
+        # Coordenadas del rostro en la imagen original
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = self.face_cascade.detectMultiScale(gray, 1.1, 5)
+
+        if len(faces) == 0:
+            return cv2.resize(frame, salida_px)
+
+        x, y, w, h = faces[0]
+        cx, cy = x + w // 2, y + h // 2  # Centro del rostro
+
+        # Calcular tamaño del recorte con proporción 4:5
+        aspect_w, aspect_h = proporcion
+        target_ratio = aspect_w / aspect_h
+
+        # Calcular alto basado en un ancho que contenga bien el rostro
+        box_width = max(w, h * target_ratio) * 1.5
+        box_height = box_width / target_ratio
+
+        # Coordenadas finales asegurando que estén dentro de la imagen
+        x1 = int(max(cx - box_width // 2, 0))
+        y1 = int(max(cy - box_height // 2, 0))
+        x2 = int(min(cx + box_width // 2, w_frame))
+        y2 = int(min(cy + box_height // 2, h_frame))
+
+        recorte = frame[y1:y2, x1:x2]
+
+        return cv2.resize(recorte, salida_px, interpolation=cv2.INTER_AREA)
 
     def detectar_y_recortar_rostro(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
