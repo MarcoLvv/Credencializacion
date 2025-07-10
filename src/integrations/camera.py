@@ -8,7 +8,7 @@ from PySide6.QtGui import QImage, QPixmap
 
 
 class CameraPreview:
-	def __init__(self, target_label, camera_index=1):
+	def __init__(self, target_label, camera_index=0):
 		self.label = target_label
 		self.cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)  # Importante en Windows
 		self.timer = QTimer()

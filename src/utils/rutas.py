@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+from tempfile import gettempdir
+
 
 def get_base_dir():
     """
@@ -12,12 +14,15 @@ def get_base_dir():
     return Path.cwd()
 
 
+
 def get_data_dir():
     """
     Devuelve la carpeta 'data/' junto al launcher. La crea si no existe.
     """
 
     data_dir = get_base_dir() / "data"
+    data_temp = get_base_dir() / "data" / "temp"
+    data_temp.mkdir(parents=True, exist_ok=True)
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
@@ -42,7 +47,6 @@ def get_temp_foto_path():
     return temp_dir / "temp_foto.png"
 
 def get_temp_credencial_dir():
-    from tempfile import gettempdir
     path = Path(gettempdir()) / "credenciales_temp"
     path.mkdir(parents=True, exist_ok=True)
     return path
