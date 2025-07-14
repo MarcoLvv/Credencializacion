@@ -7,6 +7,9 @@ from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView
 from src.controllers.capture_controller import CaptureController
 from src.controllers.edit_controller import EditController
 from src.controllers.previsualizacion_controller import PrevisualizacionController
+from src.database.db_manager import DBManager
+from src.delegates.action_delegate import ActionDelegate
+from src.models.usuarios_table_model import UsuariosTableModel
 from src.views.ventana_principal import Ui_MainWindow
 
 
@@ -15,7 +18,7 @@ class VistaPrincipal(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
+        self.db = DBManager()
         # Controladores
         # Crear primero el controlador de captura sin conectar la señal
         self.capture_ctrl = CaptureController(self)  # Pasa self (QMainWindow)
@@ -24,17 +27,60 @@ class VistaPrincipal(QMainWindow):
         # Ahora conectar la señal, ya que edit_ctrl está listo
         self.preview_ctrl = PrevisualizacionController(self.ui)
 
-        self.capture_ctrl.credencial_actualizada.connect(self.edit_ctrl.load_table)
+        self.capture_ctrl.credencial_actualizada.connect(self.load_table)
 
+        self.ui.searchBar.textChanged.connect(self.load_table)
 
         # Conectar botones principales
         self.ui.btnCapturar.clicked.connect(self._mostrar_formulario_captura)
         self.ui.btnInicio.clicked.connect(self._mostrar_home)
-        self.ui.btnEditar.clicked.connect(self._mostrar_usuarios)
-        self.ui.btnVer.clicked.connect(self._ver_credencial)
+        #self.ui.btnEditar.clicked.connect(self._mostrar_usuarios)
+        #self.ui.btnVer.clicked.connect(self._ver_credencial)
 
+        self.load_table()
         # Mostrar pantalla inicial
-        self._mostrar_home()  
+        self._mostrar_home()
+
+    def load_table(self):
+        """Carga la tabla filtrando por texto si se proporciona."""
+        search_text = self.ui.searchBar.text()
+        credenciales = self.db.obtener_todas()
+
+        if search_text:
+            search_text_lower = search_text.lower()
+            credenciales = [
+                c for c in credenciales
+                if search_text_lower in c.Nombre.lower()
+                   or search_text_lower in c.Paterno.lower()
+                   or search_text_lower in c.Materno.lower()
+                   or search_text_lower in c.CURP.lower()
+                   or search_text_lower in c.FolioId.lower()
+            ]
+
+        model = UsuariosTableModel(credenciales)
+        self.ui.usuariosVista.setModel(model)
+
+        # 🔘 Asignar el ActionDelegate a la columna de acciones (última columna, índice 6)
+        self.action_delegate = ActionDelegate(self.ui.usuariosVista)
+        acciones_columna = 6  # Verifica que sea la correcta según tu modelo
+
+        self.ui.usuariosVista.setItemDelegateForColumn(acciones_columna, self.action_delegate)
+
+        # 🔗 Conectar señales
+        self.action_delegate.editarClicked.connect(self._editar_usuario_por_fila)
+        self.action_delegate.verClicked.connect(self._ver_usuario_por_fila)
+
+    def _editar_usuario_por_fila(self, fila):
+        model = self.ui.usuariosVista.model()
+        credencial = model.obtener_datos_fila(fila)
+        self.edit_ctrl._mostrar_formulario_captura(credencial)  # Asegúrate que esta funcione correctamente
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+
+    def _ver_usuario_por_fila(self, fila):
+        model = self.ui.usuariosVista.model()
+        credencial = model.obtener_datos_fila(fila)
+        self.preview_ctrl.mostrar_credencial(credencial)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
 
     def _ver_credencial(self):
         index = self.ui.usuariosVista.currentIndex()
@@ -47,6 +93,8 @@ class VistaPrincipal(QMainWindow):
         credencial = model.obtener_datos_fila(row)
 
         self.preview_ctrl.mostrar_credencial(credencial)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
+
 
     def _mostrar_formulario_captura(self):
         # 🔽 Asegura que siempre se inicie una nueva captura

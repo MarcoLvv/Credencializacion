@@ -20,7 +20,7 @@ class PrevisualizacionController:
         self.web_view: QWebEngineView = self.ui.webPreview  # Asumiendo que ya está creado desde QtDesigner
         self.ruta_pdf_temporal = None
 
-        self.ui.btnImprimir.clicked.connect(self.imprimir_credencial)
+        self.ui.btnImprimir.clicked.connect(self.mostrar_pdf_en_webview)
 
     def mostrar_credencial(self, data):
         # Cargar imágenes de fondo
@@ -107,10 +107,10 @@ class PrevisualizacionController:
         # Generar imágenes temporales
         self.generar_imagenes_credencial()
         # Generar y mostrar PDF en webPreview
-        self.mostrar_pdf_en_webview()
+        #self.mostrar_pdf_en_webview()
         #Mostrar imagenes en navegador externo
 
-        self.mostrar_pdf_externo()
+        #self.mostrar_pdf_externo()
 
     def mostrar_pdf_externo(self):
         if self.ruta_pdf_temporal:
@@ -167,8 +167,8 @@ class PrevisualizacionController:
 
     def mostrar_pdf_en_webview(self):
         try:
-            if not self.imagen_frontal or not self.imagen_reverso:
-                raise Exception("No hay imágenes para generar el PDF.")
+            # if not self.imagen_frontal or not self.imagen_reverso:
+            #     raise Exception("No hay imágenes para generar el PDF.")
 
             pdf_path = generar_pdf_doble_cara(self.imagen_frontal, self.imagen_reverso)
             self.ruta_pdf_temporal = Path(pdf_path).resolve().as_uri()
@@ -176,9 +176,12 @@ class PrevisualizacionController:
             print(f"[OK] PDF generado correctamente en: {pdf_path}")
             print(f"[OK] Intentando cargar PDF en visor Web: {self.ruta_pdf_temporal}")
 
-            self.web_view.load(str(self.ruta_pdf_temporal))
+            if self.ruta_pdf_temporal:
+                webbrowser.open(self.ruta_pdf_temporal)
 
-            self.ui.stackedWidget.setCurrentWidget(self.ui.pagePDF)
+            # self.web_view.load(str(self.ruta_pdf_temporal))
+            #
+            # self.ui.stackedWidget.setCurrentWidget(self.ui.pagePDF)
 
         except Exception as e:
             print(f"[ERROR] No se pudo mostrar el PDF: {e}")

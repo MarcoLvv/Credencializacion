@@ -31,6 +31,11 @@ def get_foto_dir():
     foto_dir.mkdir(parents=True, exist_ok=True)
     return foto_dir
 
+def get_icons_dir():
+    foto_dir = get_data_dir() / "icons"
+    foto_dir.mkdir(parents=True, exist_ok=True)
+    return foto_dir
+
 def get_firma_dir():
     firma_dir = get_data_dir() / "firmas"
     firma_dir.mkdir(parents=True, exist_ok=True)

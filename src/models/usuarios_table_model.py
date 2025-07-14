@@ -19,6 +19,7 @@ class UsuariosTableModel(QAbstractTableModel):
             ("Paterno", "Paterno"),
             ("Materno", "Materno"),
             ("Sección Electoral", "SeccionElectoral"),
+            ("Acciones", None),  # ← Nueva columna sin atributo ligado
         ]
 
     def rowCount(self, parent=QModelIndex()):
@@ -30,6 +31,10 @@ class UsuariosTableModel(QAbstractTableModel):
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid() or role != Qt.ItemDataRole.DisplayRole:
             return None
+
+        # Si es la columna de acciones, no muestra texto (pero permite al delegate pintar íconos)
+        if self.columns[index.column()][1] is None:
+            return ""
 
         usuario = self._data[index.row()]
         _, attr = self.columns[index.column()]
