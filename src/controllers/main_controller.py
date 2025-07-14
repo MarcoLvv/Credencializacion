@@ -34,6 +34,7 @@ class VistaPrincipal(QMainWindow):
         # Conectar botones principales
         self.ui.btnCapturar.clicked.connect(self._mostrar_formulario_captura)
         self.ui.btnInicio.clicked.connect(self._mostrar_home)
+        self.ui.btnExportar.setVisible(False)
         #self.ui.btnEditar.clicked.connect(self._mostrar_usuarios)
         #self.ui.btnVer.clicked.connect(self._ver_credencial)
 
