@@ -11,15 +11,34 @@ from src.utils.rutas import get_foto_dir, get_temp_firma_path
 class FirmaController:
     def __init__(self, parent_window=None, label_firma=None):
         self.parent_window = parent_window
+        self.ui = parent_window.ui
         self.label_firma = label_firma  # QLabel donde se mostrará la firma
 
         self.db = DBManager()
         self.firma_dir = get_foto_dir()
         self.ruta_firma_actual = None
 
+        # Estado: 0 = Iniciar cámara, 1 = Capturar, 2 = Repetir
+        self.estado = 0
+        self.botones_texto = ["Iniciar Firma", "Capturar", "Repetir"]
+
+
         self.sigCtl = comtypes.client.CreateObject("SIGPLUS.SigPlusCtrl.1")
         self.sigCtl.InitSigPlus()
         self.sigCtl.SetImageScreenResolution(300)
+
+    def manejar_estado_firma(self):
+        if self.estado == 0:
+            self.iniciar_capturar_firma()
+        elif self.estado == 1:
+            self.capturar_firma()
+        elif self.estado == 2:
+            self.iniciar_capturar_firma()  # Repetir vuelve a iniciar cámara
+
+        # Cambiar al siguiente estado (cíclico)
+        self.estado = (self.estado + 1) % 3
+        self.ui.btnIniciarFirma.setText(self.botones_texto[self.estado])
+
 
     def iniciar_capturar_firma(self):
         # Limpia el QLabel de la firma si ya había algo mostrado

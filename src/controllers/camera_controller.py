@@ -1,6 +1,6 @@
 from pathlib import Path
 import cv2
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox, QFileDialog
 from PySide6.QtGui import QPixmap, QImage
 from src.database.db_manager import DBManager
 from src.integrations.camera import CameraPreview
@@ -17,9 +17,15 @@ class CameraController:
     """
     def __init__(self, target_label, main_window):
         self.mw = main_window
+        self.ui = main_window.ui
         self.preview      = CameraPreview(target_label)
         self.label_foto   = target_label
         self.db           = DBManager()
+
+        # Estado: 0 = Iniciar cámara, 1 = Capturar, 2 = Repetir
+        self.estado = 0
+        self.botones_texto = ["Iniciar cámara", "Capturar", "Repetir"]
+
 
         self.foto_dir = get_firma_dir()
         self.foto_dir.mkdir(parents=True, exist_ok=True)
@@ -29,6 +35,20 @@ class CameraController:
         self.face_cascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         )
+
+
+    def manejar_estado_foto(self):
+        if self.estado == 0:
+            self.iniciar_camara()
+        elif self.estado == 1:
+            self.capturar_foto()
+        elif self.estado == 2:
+            self.iniciar_camara()  # Repetir vuelve a iniciar cámara
+
+        # Cambiar al siguiente estado (cíclico)
+        self.estado = (self.estado + 1) % 3
+        self.ui.btnIniciarFoto.setText(self.botones_texto[self.estado])
+
 
     # ---------- control cámara ----------
     def iniciar_camara(self):
@@ -87,6 +107,7 @@ class CameraController:
 
 
 
+
     def recortar_frame_a_4_5(self, frame, salida_px=(800, 1000)):
         h, w = frame.shape[:2]
         target_ratio = 4 / 5
@@ -105,7 +126,10 @@ class CameraController:
 
         return cv2.resize(cropped, salida_px, interpolation=cv2.INTER_AREA)
 
-    def recortar_a_proporcion(self, frame, rostro, proporcion=(4, 5), salida_px=(800, 1000)):
+        # Funcion con deteccion de rostro
+#    def recortar_a_proporcion(self, frame, rostro, proporcion=(4, 5), salida_px=(800, 1000)):
+
+    def recortar_a_proporcion(self, frame, proporcion=(4, 5), salida_px=(800, 1000)):
         """
         Recorta una imagen con una proporción exacta centrada en el rostro detectado.
         - frame: imagen original
@@ -180,6 +204,64 @@ class CameraController:
         self.label_foto.setPixmap(QPixmap.fromImage(qimg))
         self.label_foto.setScaledContents(True)
 
+    def subir_foto_desde_archivo(self) -> str | None:
+        file_path, _ = QFileDialog.getOpenFileName(
+            None,
+            "Seleccionar foto",
+            "",
+            "Imágenes (*.png)"
+        )
+
+        if not file_path:
+            return None  # Usuario canceló
+
+        try:
+            frame = cv2.imread(file_path)
+            if frame is None:
+                QMessageBox.critical(None, "Error", "No se pudo leer la imagen.")
+                return None
+
+            # --- detección facial ---
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)
+
+            if len(faces):
+                x, y, w, h = faces[0]
+                pad = int(0.4 * h)
+                x1, y1 = max(x - pad, 0), max(y - pad, 0)
+                x2, y2 = min(x + w + pad, frame.shape[1]), min(y + h + pad, frame.shape[0])
+                frame = frame[y1:y2, x1:x2]
+
+            # Redimensionar al tamaño del label
+            size = self.label_foto.size()
+            frame = self.recortar_a_proporcion(frame)
+
+            # --- mejora brillo/contraste ---
+            frame = cv2.convertScaleAbs(frame, alpha=1.2, beta=20)
+
+            # --- guardar temporal ---
+            temp_dir = self.foto_dir.parent / "temp"
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            ruta_foto = temp_dir / "temp_foto.png"
+
+            cv2.imwrite(str(ruta_foto), frame)
+            self.ultima_ruta = str(ruta_foto)
+
+            # Mostrar en QLabel
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h, w = rgb.shape[:2]
+            qimg = QImage(rgb.data, w, h, rgb.strides[0], QImage.Format.Format_RGB888)
+            self.label_foto.setPixmap(QPixmap.fromImage(qimg))
+            self.label_foto.setScaledContents(True)
+
+            print(f"[CameraController] Foto cargada desde archivo: {self.ultima_ruta}")
+            return self.ultima_ruta
+
+        except Exception as e:
+            QMessageBox.critical(None, "Error", f"No se pudo cargar la foto:\n{e}")
+            return None
+
     # ---------- getter ----------
     def get_ruta_foto(self) -> str | None:
         return self.ultima_ruta
+

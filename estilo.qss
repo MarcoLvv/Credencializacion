@@ -12,11 +12,16 @@ QMainWindow {
 
 /* === WIDGET LATERAL CON BOTONES === */
 QWidget#buttonsBar {
-    background-color: #145577;
+    background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:2, fx:0.5, fy:0.5, stop:0 rgba(32, 72, 99, 255),stop:0.010989 rgba(14, 76, 118, 255), stop:0.324176 rgba(9, 54, 82, 255), stop:0.494505 rgba(9, 54, 82, 255));
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
     padding: 12px;
 }
+
+
+
+
+
 
 /* === BOTONES DEL MENÚ LATERAL === */
 QPushButton {
@@ -26,6 +31,27 @@ QPushButton {
     padding: 8px 16px;
     border: 1px solid #0E4F6B;
     margin-bottom: 10px;
+}
+
+#buttonsBar QPushButton {
+    background-color: transparent;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: background-color 0.3s ease; /* Para suavizar el cambio */
+}
+
+#buttonsBar QPushButton:hover {
+    background-color: qradialgradient(
+        spread:pad,
+        cx:0.5, cy:0.494, radius:0.694, fx:0.5, fy:0.5,
+        stop:0.225275 rgba(10, 54, 84, 255),
+        stop:0.236264 rgba(10, 54, 84, 255),
+        stop:0.796703 rgba(10, 46, 70, 255),
+        stop:0.835165 rgba(10, 46, 70, 255)
+    );
 }
 
 QPushButton:hover {

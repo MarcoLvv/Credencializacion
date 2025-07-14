@@ -87,7 +87,7 @@ class DBManager:
             CodigoPostal=datos.get("CodigoPostal", ""),
             Municipio=datos.get("Municipio", ""),
             SeccionElectoral=datos.get("SeccionElectoral", ""),
-            GeneroId=datos.get("GeneroId"),
+            Genero=datos.get("Genero"),
             Celular=datos.get("Celular", ""),
             Email=datos.get("Email", ""),
             RutaFoto=datos.get("ruta_foto", ""),

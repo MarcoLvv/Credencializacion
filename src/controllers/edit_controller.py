@@ -14,32 +14,11 @@ class EditController:
 
         # Conectar eventos de edición
         #self.ui.searchBar.textChanged.connect(self.load_table)
-        self.ui.btnEditar.clicked.connect(self._editar_seleccionado)
+        #self.ui.btnEditar.clicked.connect(self._editar_seleccionado)
         #desconectar_btn_guardar(self.ui)
 
-        # Cargar datos al inicio
-        self.load_table()
 
         #self.ui.usuariosVista.doubleClicked.connect(self.edit_ctrl._editar_usuario)
-
-    def load_table(self):
-        """Carga la tabla filtrando por texto si se proporciona."""
-        search_text = self.ui.searchBar.text().strip()
-        credenciales = self.db.obtener_todas()
-
-        if search_text:
-            search_text_lower = search_text.lower()
-            credenciales = [
-                c for c in credenciales
-                if search_text_lower in c.Nombre.lower()
-                or search_text_lower in c.Paterno.lower()
-                or search_text_lower in c.Materno.lower()
-                or search_text_lower in c.CURP.lower()
-                or search_text_lower in c.FolioId.lower()
-            ]
-
-        model = UsuariosTableModel(credenciales)
-        self.ui.usuariosVista.setModel(model)
 
     def _editar_usuario(self, index):
         """Cuando se hace doble clic sobre una fila."""

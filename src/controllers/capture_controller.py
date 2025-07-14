@@ -36,10 +36,10 @@ class CaptureController(QObject):
         self._conectar_botones()
 
     def _conectar_botones(self):
-        self.ui.btnIniciarFoto.clicked.connect(self.camera.iniciar_camara)
-        self.ui.btnIniciarFirma.clicked.connect(self.firma_ctrl.iniciar_capturar_firma)
-        self.ui.btnCapturarFoto.clicked.connect(self._capturar_foto_ui)
-        self.ui.btnCapturarFirma.clicked.connect(self._capturar_y_mostrar_firma)
+        self.ui.btnIniciarFoto.clicked.connect(self.camera.manejar_estado_foto)
+        self.ui.btnIniciarFirma.clicked.connect(self.firma_ctrl.manejar_estado_firma)
+        self.ui.btnCapturarFoto.clicked.connect(self.camera.subir_foto_desde_archivo)
+        self.ui.btnCapturarFirma.setVisible(False)
         try:
             self.ui.btnGuardarDatos.clicked.disconnect()
         except TypeError:
@@ -72,6 +72,7 @@ class CaptureController(QObject):
             self.ui.celular, self.ui.email
         ]:
             campo.clear()
+        self.ui.genero.addItems(["", "Masculino", "Femenino"])
 
         self.ui.labelFoto.clear()
         self.ui.labelFirma.clear()
@@ -196,7 +197,7 @@ class CaptureController(QObject):
         self.ui.colonia.setText(credencial.Colonia)
         self.ui.municipio.setText(credencial.Municipio)
         self.ui.seccionElectoral.setText(credencial.SeccionElectoral)
-        self.ui.genero.setText(credencial.GeneroId)
+        self.ui.genero.setCurrentText(credencial.Genero)
         self.ui.celular.setText(credencial.Celular)
         self.ui.email.setText(credencial.Email)
 

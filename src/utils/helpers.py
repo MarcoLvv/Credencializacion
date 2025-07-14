@@ -56,6 +56,7 @@ def desconectar_btn_guardar(ui):
 def recolectar_datos_formulario(ui):
     fecha_qt = ui.fechaNacimiento.date()
     fechaNacimiento = date(fecha_qt.year(), fecha_qt.month(), fecha_qt.day())
+
     return{
 
 
@@ -73,7 +74,7 @@ def recolectar_datos_formulario(ui):
         "Colonia": ui.colonia.text().strip(),
         "Municipio": ui.municipio.text().strip(),
         "SeccionElectoral": ui.seccionElectoral.text().strip(),
-        "Genero": ui.genero.text().strip(),
+        "Genero": ui.genero.currentText(),
         "Celular": ui.celular.text().strip(),
         "Email": ui.email.text().strip()
 

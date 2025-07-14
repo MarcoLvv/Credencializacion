@@ -36,7 +36,7 @@ class TbcUsuarios(Base):
     Paterno = Column(String(100))
     Materno = Column(String(100))
     FechaNacimiento = Column(Date)
-    GeneroId = Column(Integer)
+    Genero = Column(String(10))
     CURP = Column(String(20))
     Calle = Column(String(100))
     NumExterior = Column(String(10))
