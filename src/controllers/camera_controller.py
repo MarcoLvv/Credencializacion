@@ -133,7 +133,7 @@ class CameraController:
         self.parent.btnIniciarFoto.setEnabled(habilitado)
 
     def preparar_estado_captura(self):
-        """⚙️ Método para dejar el botón y cámara en estado inicial, sin abrir la cámara."""
+        # Metodo para dejar el botón y cámara en estado inicial, sin abrir la cámara.
         self.detener_camara()
         self.ultima_ruta_foto = ""
         self.estado = 0

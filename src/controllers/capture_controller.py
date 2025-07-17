@@ -53,9 +53,9 @@ class CaptureController(QObject):
         self.ui.btnGuardarDatos.clicked.connect(self.guardar_credencial)
 
     def actualizar_db(self, nuevo_db_manager):
-        """
-        Método para actualizar el DBManager desde fuera, útil cuando cambia la base de datos.
-        """
+
+        # Metodo para actualizar el DBManager desde fuera, útil cuando cambia la base de datos.
+
         self.db = nuevo_db_manager
 
     def toggle_camera(self):
