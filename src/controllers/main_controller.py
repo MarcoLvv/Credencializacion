@@ -1,128 +1,296 @@
 # src/controllers/main_controller.py
-import time
+import os
+from pathlib import Path
 
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView
+import pandas as pd
+from datetime import datetime
+
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog, QInputDialog
+from sqlalchemy import create_engine
 
 from src.controllers.capture_controller import CaptureController
 from src.controllers.edit_controller import EditController
 from src.controllers.previsualizacion_controller import PrevisualizacionController
 from src.database.db_manager import DBManager
 from src.delegates.action_delegate import ActionDelegate
+from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
+from src.utils.rutas import get_data_dir, get_bases_disponibles, get_bd_path
 from src.views.ventana_principal import Ui_MainWindow
 
+
+def fila_a_usuario(row):
+    usuario = TbcUsuarios()
+    CAMPOS_MAPPINGS = {
+        'NOMBRE': 'Nombre',
+        'APELLIDO PATERNO': 'Paterno',
+        'APELLIDO MATERNO': 'Materno',
+        'FECHA DE NACIMIENTO': 'FechaNacimiento',
+        'CALLE': 'Calle',
+        'NUMERO': 'NumExterior',
+        'COLONIA': 'Colonia',
+        'MUNICIPIO/ALCALDIA': 'Municipio',
+        'CURP': 'CURP',
+        'SECCION': 'SeccionElectoral',
+        'FOTOGRAFIA': 'RutaFoto',
+        'TELEFONO': 'Celular',
+        'CORREO': 'Email',
+        'CREDENCIAL IMPRESA': 'CredencialImpresa',  # Si lo activas después
+        'ENTREGADA': 'Entragada'  # Si lo activas después
+    }
+
+    for excel_col, attr in CAMPOS_MAPPINGS.items():
+        if pd.isna(row.get(excel_col)):
+            setattr(usuario, attr, None)
+        else:
+            valor = row[excel_col]
+            if attr in ["FechaNacimiento", "FechaAlta"]:
+                try:
+                    if isinstance(valor, str):
+                        valor = datetime.strptime(valor, "%d/%m/%Y").date()
+                    elif isinstance(valor, pd.Timestamp):
+                        valor = valor.date()
+                except Exception:
+                    valor = None  # Fecha malformada
+
+            elif attr in ["CredencialImpresa", "Entragada"]:
+                valor = str(valor).strip().lower() in ["sí", "si", "1", "true", "x"]
+
+            setattr(usuario, attr, valor)
+
+    # Algunos valores por default
+    usuario.FolioId = f"AUTO-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    usuario.FechaAlta = datetime.today().date()
+
+    return usuario
 
 class VistaPrincipal(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.ui = Ui_MainWindow()
+        self.mw = Ui_MainWindow()
+        self.ui = self.mw
         self.ui.setupUi(self)
-        self.db = DBManager()
-        # Controladores
-        # Crear primero el controlador de captura sin conectar la señal
-        self.capture_ctrl = CaptureController(self)  # Pasa self (QMainWindow)
-        # Luego crear el controlador de edición
-        self.edit_ctrl = EditController(self, self.capture_ctrl)
-        # Ahora conectar la señal, ya que edit_ctrl está listo
+
+        # Inicializar rutas de bases de datos disponibles
+        self.db_paths = get_bases_disponibles()
+        if not self.db_paths:
+            QMessageBox.warning(self, "Sin bases", "No se encontraron bases de datos en la carpeta.")
+            return
+
+        # Establecer base inicial (la primera del comboBox)
+        base_inicial = self.db_paths[0]
+        self.ui.comboBoxDB.addItems(self.db_paths)
+
+        self.db = DBManager(base_inicial)
+
+        # Inicializar controladores con DB ya configurada
+        self.capture_controller = CaptureController(self.mw, self.ui, self.db)
+        self.edit_ctrl = EditController(self, self.capture_controller)
         self.preview_ctrl = PrevisualizacionController(self.ui)
 
-        self.capture_ctrl.credencial_actualizada.connect(self.load_table)
 
+        # Crear instancia DBManager con la ruta de la base inicial
+        self.capture_controller.actualizar_db(self.db)
+
+        # Conexiones de botones
+        self.capture_controller.credencial_actualizada.connect(self.load_table)
         self.ui.searchBar.textChanged.connect(self.load_table)
+        self.ui.btnCapturar.clicked.connect(self.mostrar_formulario_captura)
+        self.ui.btnInicio.clicked.connect(self.mostrar_home)
+        self.ui.btnImportar.clicked.connect(self.importar_excel)
+        self.ui.btnNuevaBase.clicked.connect(self.crear_nueva_base)
 
-        # Conectar botones principales
-        self.ui.btnCapturar.clicked.connect(self._mostrar_formulario_captura)
-        self.ui.btnInicio.clicked.connect(self._mostrar_home)
-        self.ui.btnExportar.setVisible(False)
-        #self.ui.btnEditar.clicked.connect(self._mostrar_usuarios)
-        #self.ui.btnVer.clicked.connect(self._ver_credencial)
+        # Conexión del ComboBox para cambiar base
+        self.ui.comboBoxDB.currentIndexChanged.connect(self.cambiar_base_desde_combo)
+
+        self.model_db = TbcUsuariosDAO()
+        self.delegate_configurado = False
 
         self.load_table()
-        # Mostrar pantalla inicial
-        self._mostrar_home()
+        self.mostrar_home()
+
+    def cambiar_base_desde_combo(self):
+        nombre_archivo = self.ui.comboBoxDB.currentText()
+        ruta_nueva = get_bd_path() / nombre_archivo
+        self.cambiar_y_cargar_base(ruta_nueva)
+
+    def cargar_bases(self):
+        self.ui.comboBoxDB.clear()
+
+        directorio = get_data_dir()
+        bases = [f for f in os.listdir(directorio) if f.endswith(".db")]
+
+        self.ui.comboBoxDB.addItems(bases)
 
     def load_table(self):
-        """Carga la tabla filtrando por texto si se proporciona."""
-        search_text = self.ui.searchBar.text()
+        """Carga las credenciales y las muestra en la tabla, aplicando filtro si hay texto."""
+        search_text = self.ui.searchBar.text().lower()
         credenciales = self.db.obtener_todas()
 
         if search_text:
-            search_text_lower = search_text.lower()
             credenciales = [
-                c for c in credenciales
-                if search_text_lower in c.Nombre.lower()
-                   or search_text_lower in c.Paterno.lower()
-                   or search_text_lower in c.Materno.lower()
-                   or search_text_lower in c.CURP.lower()
-                   or search_text_lower in c.FolioId.lower()
+                c for c in credenciales if any(
+                    search_text in str(getattr(c, attr, "")).lower()
+                    for attr in ["Nombre", "Paterno", "Materno", "CURP", "FolioId"]
+                )
             ]
 
         model = UsuariosTableModel(credenciales)
         self.ui.usuariosVista.setModel(model)
 
-        # 🔘 Asignar el ActionDelegate a la columna de acciones (última columna, índice 6)
-        self.action_delegate = ActionDelegate(self.ui.usuariosVista)
-        acciones_columna = 6  # Verifica que sea la correcta según tu modelo
+        if not self.delegate_configurado:
+            self.action_delegate = ActionDelegate(self.ui.usuariosVista)
+            self.ui.usuariosVista.setItemDelegateForColumn(6, self.action_delegate)
+            self.action_delegate.editarClicked.connect(self.editar_usuario_por_fila)
+            self.action_delegate.verClicked.connect(self.ver_usuario_por_fila)
+            self.delegate_configurado = True
 
-        self.ui.usuariosVista.setItemDelegateForColumn(acciones_columna, self.action_delegate)
+    def crear_nueva_base(self):
+        nombre, ok = QInputDialog.getText(self, "Nueva Base de Datos", "Nombre del archivo:")
+        if ok and nombre.strip():
+            nombre = nombre.strip()
+            ruta_db = get_data_dir() / f"{nombre}.db"
 
-        # 🔗 Conectar señales
-        self.action_delegate.editarClicked.connect(self._editar_usuario_por_fila)
-        self.action_delegate.verClicked.connect(self._ver_usuario_por_fila)
+            if ruta_db.exists():
+                QMessageBox.warning(self, "Base existente", f"Ya existe una base con el nombre '{nombre}'.")
+                return
 
-    def _editar_usuario_por_fila(self, fila):
-        model = self.ui.usuariosVista.model()
-        credencial = model.obtener_datos_fila(fila)
-        self.edit_ctrl._mostrar_formulario_captura(credencial)  # Asegúrate que esta funcione correctamente
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+            creada = self.db.crear_base_nueva(nombre)
+            if creada:
+                self.cargar_bases()
+                self.ui.comboBoxDB.setCurrentText(nombre)
+                # No se llama aquí a recargar_tabla() porque cambiar_base_desde_combo se disparará
+            else:
+                QMessageBox.critical(self, "Error", f"No se pudo crear la base '{nombre}'.")
+        else:
+            print("[INFO] Creación cancelada o nombre vacío.")
 
-    def _ver_usuario_por_fila(self, fila):
-        model = self.ui.usuariosVista.model()
-        credencial = model.obtener_datos_fila(fila)
-        self.preview_ctrl.mostrar_credencial(credencial)
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
+    def cambiar_y_cargar_base(self, ruta_db: Path):
+        self.db = DBManager(ruta_db)
+        self.capture_controller.db = self.db
 
-    def _ver_credencial(self):
-        index = self.ui.usuariosVista.currentIndex()
-        if not index.isValid():
-            QMessageBox.warning(self.ui.usuariosVista, "Ver credencial", "Selecciona un usuario para ver su credencial.")
-            return
+        # Esperar breve tiempo antes de cargar tabla para evitar acceso prematuro
+        QTimer.singleShot(100, self.load_table)
 
-        row = index.row()
-        model = self.ui.usuariosVista.model()
-        credencial = model.obtener_datos_fila(row)
-
-        self.preview_ctrl.mostrar_credencial(credencial)
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
-
-
-    def _mostrar_formulario_captura(self):
-        # 🔽 Asegura que siempre se inicie una nueva captura
-        self.capture_ctrl.modo_edicion = False
-        self.capture_ctrl.credencial_editando = None
-
-        self.capture_ctrl.limpiar_formulario()
+    def mostrar_formulario_captura(self):
+        """Prepara el formulario para una nueva captura."""
+        self.capture_controller.modo_edicion = False
+        self.capture_controller.credencial_editando = None
+        self.capture_controller.limpiar_formulario()
         self.ui.usuariosVista.clearSelection()
+
+        # Reinicia correctamente el estado de la cámara
+        self.capture_controller.camera_ctrl.preparar_estado_captura()
+
         self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
 
-    def _mostrar_home(self):
+    def mostrar_home(self):
+        """Muestra la vista de inicio y detiene cualquier cámara activa."""
+        self.capture_controller.camera_ctrl.preparar_estado_captura()
+
+
+        self._configurar_tabla_usuarios()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewHome)
+
+    def editar_usuario_por_fila(self, fila):
+        """Carga una credencial para edición."""
+        model = self.ui.usuariosVista.model()
+        credencial = model.obtener_datos_fila(fila)
+        self.capture_controller.camera_ctrl.preparar_estado_captura()
+
+        self.edit_ctrl._mostrar_formulario_captura(credencial)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+
+    def ver_usuario_por_fila(self, fila):
+        """Muestra una credencial en modo previsualización."""
+        model = self.ui.usuariosVista.model()
+        credencial = model.obtener_datos_fila(fila)
+        self.preview_ctrl.mostrar_credencial(credencial)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
+
+    def _configurar_tabla_usuarios(self):
+        """Ajusta el tamaño de columnas de la tabla de usuarios."""
         header = self.ui.usuariosVista.horizontalHeader()
-        #model = self.ui.viewHome.model()
         self.ui.usuariosVista.verticalHeader().setVisible(False)
-
-        # Columna 0: ajusta solo al contenido
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-
-        # Columnas 1 a 5: que se expandan para ocupar el espacio restante
         for col in range(1, 6):
             header.setSectionResizeMode(col, QHeaderView.ResizeMode.Stretch)
 
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewHome)
+    def importar_excel(self):
+        ruta, _ = QFileDialog.getOpenFileName(self, "Seleccionar archivo Excel", "",
+                                              "Excel (*.xlsx *.xls);;CSV (*.csv)")
+        if not ruta:
+            return
 
-    def _mostrar_usuarios(self):
-        # El controlador de edición lo gestiona automáticamente.
-        time.sleep(0.1)  # Esperar 100ms por si el archivo aún se está escribiendo
-        
-        self.edit_ctrl.load_table()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+        try:
+            df = pd.read_excel(ruta) if ruta.endswith(".xlsx") else pd.read_csv(ruta)
+            usuarios = []
+
+            for _, row in df.iterrows():
+                try:
+                    usuario = fila_a_usuario(row)
+                    usuarios.append(usuario)
+                except Exception as e:
+                    print(f"❌ Error en fila: {e}")
+
+            self.db.insertar_multiples(usuarios)
+            self.load_table()
+
+            QMessageBox.information(self, "Importación completada",
+                                    f"{len(usuarios)} credenciales importadas correctamente.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error al importar", str(e))
+
+    def cambiar_base_datos(self, nombre_base):
+
+        # Construir ruta completa
+        ruta = get_data_dir() / nombre_base  # o usa Path.joinpath si prefieres
+
+        # Cambiar base de datos en DBManager
+        self.db.cambiar_base(ruta)
+
+        # Reconstruir sesión SQLAlchemy
+        self.session = self.db.get_session()
+
+        # Recargar el modelo con datos de la nueva base
+        self.load_table()
+
+
+    def recargar_tabla(self):
+        self.load_table()
+
+    def cargar_usuarios(self):
+        session = self.db.get_session()
+        usuarios = self.model_db.get_all()
+        modelo = UsuariosTableModel(usuarios)
+        self.ui.usuariosVista.setModel(modelo)
+
+    def actualizar_vista(self):
+        if not self.db.Session:
+            print("⚠️ No hay sesión activa.")
+            return
+
+        try:
+            dao = TbcUsuariosDAO(self.db.get_session)
+            usuarios = dao.get_all()
+            modelo = UsuariosTableModel(usuarios)
+            self.ui.usuariosVista.setModel(modelo)
+            self.ui.usuariosVista.resizeColumnsToContents()
+        except Exception as e:
+            print(f"⚠️ Error actualizando vista: {e}")
+
+    #self.ui.btnCargarBase.clicked.connect(self.seleccionar_base_datos_existente)
+
+    # def seleccionar_base_datos_existente(self):
+    #     ruta, _ = QFileDialog.getOpenFileName(self, "Seleccionar base de datos", "", "Archivos SQLite (*.db)")
+    #     if ruta:
+    #         nombre = os.path.basename(ruta)
+    #         destino = os.path.join(get_data_dir(), nombre)
+    #         if not os.path.exists(destino):
+    #             shutil.copy(ruta, destino)
+    #         self.cargar_bases_disponibles()
+    #         self.ui.comboBoxDB.setCurrentText(nombre)
+
+

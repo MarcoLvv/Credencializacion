@@ -1,17 +1,12 @@
-# src/models/usuarios_table_model.py
 from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
 
-class UsuariosTableModel(QAbstractTableModel):
-    """
-    Modelo de tabla para mostrar usuarios en una QTableView.
-    Usa una lista de objetos con atributos (ej. instancia de TbcUsuarios).
-    """
+from src.models.credencial_model import TbcUsuariosDAO
 
+
+class UsuariosTableModel(QAbstractTableModel):
     def __init__(self, data=None):
         super().__init__()
         self._data = data or []
-
-        # Map headers -> atributo del modelo
         self.columns = [
             ("ID", "Id"),
             ("Folio", "FolioId"),
@@ -19,7 +14,7 @@ class UsuariosTableModel(QAbstractTableModel):
             ("Paterno", "Paterno"),
             ("Materno", "Materno"),
             ("Sección Electoral", "SeccionElectoral"),
-            ("Acciones", None),  # ← Nueva columna sin atributo ligado
+            ("Acciones", None),
         ]
 
     def rowCount(self, parent=QModelIndex()):
@@ -29,36 +24,70 @@ class UsuariosTableModel(QAbstractTableModel):
         return len(self.columns)
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-        if not index.isValid() or role != Qt.ItemDataRole.DisplayRole:
+        if not index.isValid():
             return None
 
-        # Si es la columna de acciones, no muestra texto (pero permite al delegate pintar íconos)
-        if self.columns[index.column()][1] is None:
-            return ""
+        row = index.row()
+        column = index.column()
+        if row >= len(self._data):
+            return None
 
-        usuario = self._data[index.row()]
-        _, attr = self.columns[index.column()]
-        valor = getattr(usuario, attr, "")
-        return str(valor) if valor is not None else ""
+        _, attr = self.columns[column]
+        usuario = self._data[row]
+
+        if role == Qt.ItemDataRole.DisplayRole:
+            if attr is None:
+                return ""
+            valor = getattr(usuario, attr, "")
+            return str(valor) if valor is not None else ""
+
+        if role == Qt.ItemDataRole.TextAlignmentRole:
+            if attr is None:
+                return Qt.AlignmentFlag.AlignCenter
+            return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+
+        return None
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if role != Qt.ItemDataRole.DisplayRole:
             return None
-
         if orientation == Qt.Orientation.Horizontal:
             return self.columns[section][0]
         elif orientation == Qt.Orientation.Vertical:
             return str(section + 1)
         return None
 
+    def flags(self, index):
+        if not index.isValid():
+            return Qt.ItemFlag.ItemIsEnabled
+        return Qt.ItemFlag.ItemIsSelectable or Qt.ItemFlag.ItemIsEnabled
+
     def update_data(self, new_data):
-        """Recarga el modelo con nuevos datos."""
         self.beginResetModel()
         self._data = new_data or []
         self.endResetModel()
 
     def obtener_datos_fila(self, row):
-        """Devuelve el objeto de la fila (ej. un TbcUsuario)."""
         if 0 <= row < len(self._data):
             return self._data[row]
         return None
+
+    def actualizar_fila(self, row):
+        if 0 <= row < len(self._data):
+            top_left = self.index(row, 0)
+            bottom_right = self.index(row, self.columnCount() - 1)
+            self.dataChanged.emit(top_left, bottom_right, [Qt.ItemDataRole.DisplayRole])
+
+    def sort(self, column, order):
+        attr = self.columns[column][1]
+        if attr is None:
+            return
+        self.layoutAboutToBeChanged.emit()
+        self._data.sort(
+            key=lambda x: str(getattr(x, attr, "") or ""),
+            reverse=(order == Qt.SortOrder.DescendingOrder),
+        )
+        self.layoutChanged.emit()
+
+    def get_all_data(self):
+        return self._data

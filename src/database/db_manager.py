@@ -1,42 +1,69 @@
 from datetime import datetime
-from sqlalchemy import func
+from pathlib import Path
+
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
-from src.config.database_config import Base, engine
-from src.models.credencial_model import TbcUsuarios, TbcUsuariosModel
+from src.config.database_config import Base
+from src.models.credencial_model import TbcUsuarios
 from src.utils.config_manager import get_module_id
 from src.utils.rutas import get_data_dir
 
 
-def init_db():
-    """
-    Crea base.db si no existe y genera las tablas.
-    """
-    db_path = get_data_dir() / "base.db"
-    if not db_path.exists():
-        print("[DB] Creando base de datos inicial...")
-        Base.metadata.create_all(bind=engine)
-
+def crear_base_de_datos(path_db):
+    """Crea una base de datos SQLite nueva y genera sus tablas."""
+    engine_nuevo = create_engine(f"sqlite:///{str(path_db)}")
+    Base.metadata.create_all(bind=engine_nuevo)
+    return engine_nuevo
 
 
 class DBManager:
-    def __init__(self):
-        self.engine = engine
+    def __init__(self, ruta_db=None):
+        # Si no se proporciona ruta, por defecto data/base.db
+        self.ruta_db = Path(ruta_db) if ruta_db else get_data_dir() / "base.db"
+
+        self.engine = create_engine(f"sqlite:///{str(self.ruta_db)}")
+
         self.Session = sessionmaker(bind=self.engine)
 
-        # Comprobación de base.db
-        db_path = get_data_dir() / "base.db"
-        if not db_path.exists():
-            print("[DBManager] Creando base de datos por primera vez...")
-            init_db()
+        # Crear base si no existe
+        if not self.ruta_db.exists():
+            print(f"[DB] Base no encontrada. Creando nueva base: {self.ruta_db}")
+            Base.metadata.create_all(bind=self.engine)
+
+    def get_session(self):
+        return self.Session()
+
+    def cambiar_base(self, nueva_ruta):
+        nueva_ruta = Path(nueva_ruta)  # Asegurar que es Path
+        if not nueva_ruta.exists():
+            print(f"[DBManager] ⚠️ La ruta {nueva_ruta} no existe. ¿Deseas crear una nueva base?")
+            crear_base_de_datos(nueva_ruta)
+
+        self.ruta_db = nueva_ruta
+        self.engine = create_engine(f"sqlite:///{str(self.ruta_db)}")  # 👈 Conversión importante
+        self.Session = sessionmaker(bind=self.engine)
+
+    def crear_base_nueva(self, nombre_archivo):
+        """
+        Crea una nueva base con el nombre proporcionado dentro de /data/bases
+        """
+        ruta = get_data_dir() / f"{nombre_archivo}.db"
+        if ruta.exists():
+            print(f"[DBManager] ⚠️ La base {ruta.name} ya existe.")
+            return False
+        crear_base_de_datos(ruta)
+        self.cambiar_base(ruta)
+        print(f"[DBManager] ✅ Nueva base creada y activada: {ruta.name}")
+        return True
 
     def get_next_consecutive(self):
         with self.Session() as session:
-            count = session.query(func.count(TbcUsuarios.Id)).scalar() + 1
-            return f"{count:05d}"
+            count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
+            return f"{count + 1:05d}"
 
     def get_last(self):
         with self.Session() as session:
-            count = session.query(func.count(TbcUsuarios.Id)).scalar()
+            count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
             return f"{count:05d}"
 
     def generar_folio(self):
@@ -47,31 +74,9 @@ class DBManager:
         consecutivo = self.get_next_consecutive()
         return f"FAMC-{año}{mes}-{modulo}-{consecutivo}"
 
-    def actualizar_ruta_foto(self, folio, nueva_ruta):
-        with self.Session() as session:
-            credencial = session.query(TbcUsuarios).filter_by(FolioId=folio).first()
-            if credencial:
-                credencial.RutaFoto = nueva_ruta
-                session.commit()
-                return True
-            return False
-   #insertar Credenciales para pruebas
-    def insertar_credencial_prueba(self, nombre, curp, ruta_foto):
-        folio = self.generar_folio()
-        nueva_credencial = TbcUsuarios(
-            FolioId=folio,
-            Nombre=nombre,
-            CURP=curp,
-            RutaFoto=ruta_foto
-        )
-        with self.Session() as session:
-            session.add(nueva_credencial)
-            session.commit()
-        return folio
-
     def insertar_credencial(self, **datos):
         folio = self.generar_folio()
-        nueva_credencial = TbcUsuarios(
+        cred = TbcUsuarios(
             FolioId=folio,
             Nombre=datos.get("Nombre", ""),
             Paterno=datos.get("Paterno", ""),
@@ -87,7 +92,7 @@ class DBManager:
             CodigoPostal=datos.get("CodigoPostal", ""),
             Municipio=datos.get("Municipio", ""),
             SeccionElectoral=datos.get("SeccionElectoral", ""),
-            Genero=datos.get("Genero"),
+            Genero=datos.get("Genero", ""),
             Celular=datos.get("Celular", ""),
             Email=datos.get("Email", ""),
             RutaFoto=datos.get("ruta_foto", ""),
@@ -95,9 +100,50 @@ class DBManager:
             RutaQR=datos.get("ruta_qr", "")
         )
         with self.Session() as session:
-            session.add(nueva_credencial)
+            session.add(cred)
             session.commit()
         return folio
+
+    def insertar_multiples(self, lista_credenciales):
+        with self.Session() as session:
+            session.add_all(lista_credenciales)
+            session.commit()
+
+    def actualizar_ruta_foto(self, folio, nueva_ruta):
+        with self.Session() as session:
+            cred = session.query(TbcUsuarios).filter_by(FolioId=folio).first()
+            if cred:
+                cred.RutaFoto = nueva_ruta
+                session.commit()
+                return True
+            return False
+
+    def actualizar_credencial(self, folio, **datos_actualizados):
+        with self.Session() as session:
+            print("DEBUG - folio recibido:", folio, type(folio))
+
+            if isinstance(folio, list):
+                folio = folio[0]  # si es lista, tomamos el primer valor
+            # Ahora folio es un valor plano
+            cred = session.query(TbcUsuarios).filter_by(FolioId=folio).first()
+
+            if not cred:
+                print(f"[ERROR] No se encontró credencial con folio: {folio}")
+                return False
+            for campo, valor in datos_actualizados.items():
+                if hasattr(cred, campo):
+                    setattr(cred, campo, valor)
+            session.commit()
+            return True
+
+    def eliminar_credencial(self, id_credencial):
+        with self.Session() as session:
+            cred = session.query(TbcUsuarios).filter_by(Id=id_credencial).first()
+            if cred:
+                session.delete(cred)
+                session.commit()
+                return True
+            return False
 
     def obtener_todas(self):
         with self.Session() as session:
@@ -114,33 +160,3 @@ class DBManager:
     def obtener_credencial(self):
         with self.Session() as session:
             return session.query(TbcUsuarios)
-
-    def actualizar_credencial(self, folio, **datos_actualizados):
-        try:
-            with self.Session() as session:
-                credencial = session.query(TbcUsuarios).filter_by(FolioId=folio).first()
-                if not credencial:
-                    print(f"[ERROR] No se encontró la credencial con folio: {folio}")
-                    return False
-
-                # Asignación dinámica de campos actualizados
-                for campo, valor in datos_actualizados.items():
-                    if hasattr(credencial, campo):
-                        setattr(credencial, campo, valor)
-
-                session.commit()
-                print(f"[OK] Credencial actualizada correctamente con folio {folio}")
-                return True
-        except Exception as e:
-            print(f"[ERROR] No se pudo actualizar la credencial: {e}")
-            return False
-
-
-    def eliminar_credencial(self, id_credencial):
-        with self.Session() as session:
-            credencial = session.query(TbcUsuarios).filter_by(Id=id_credencial).first()
-            if credencial:
-                session.delete(credencial)
-                session.commit()
-                return True
-            return False

@@ -11,7 +11,7 @@ from src.utils.rutas import get_foto_dir, get_temp_firma_path
 class FirmaController:
     def __init__(self, parent_window=None, label_firma=None):
         self.parent_window = parent_window
-        self.ui = parent_window.ui
+        self.ui = parent_window
         self.label_firma = label_firma  # QLabel donde se mostrará la firma
 
         self.db = DBManager()

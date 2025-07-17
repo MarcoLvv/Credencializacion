@@ -103,17 +103,17 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.btnCapturar)
 
-        self.btnExportar = QPushButton(self.buttonsBar)
-        self.btnExportar.setObjectName(u"btnExportar")
-        self.btnExportar.setMinimumSize(QSize(160, 70))
-        self.btnExportar.setMaximumSize(QSize(160, 70))
-        self.btnExportar.setFont(font1)
-        self.btnExportar.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
+        self.btnImportar = QPushButton(self.buttonsBar)
+        self.btnImportar.setObjectName(u"btnImportar")
+        self.btnImportar.setMinimumSize(QSize(160, 70))
+        self.btnImportar.setMaximumSize(QSize(160, 70))
+        self.btnImportar.setFont(font1)
+        self.btnImportar.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
 "padding-left: 10px;")
         icon2 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoUp))
-        self.btnExportar.setIcon(icon2)
+        self.btnImportar.setIcon(icon2)
 
-        self.verticalLayout.addWidget(self.btnExportar)
+        self.verticalLayout.addWidget(self.btnImportar)
 
         self.verticalSpacer = QSpacerItem(160, 420, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
@@ -150,7 +150,11 @@ class Ui_MainWindow(object):
         self.frameIndex.setFrameShadow(QFrame.Shadow.Raised)
         self.verticalLayout_2 = QVBoxLayout(self.frameIndex)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.labelSistema = QLabel(self.frameIndex)
+        self.widget = QWidget(self.frameIndex)
+        self.widget.setObjectName(u"widget")
+        self.horizontalLayout_7 = QHBoxLayout(self.widget)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.labelSistema = QLabel(self.widget)
         self.labelSistema.setObjectName(u"labelSistema")
         self.labelSistema.setMinimumSize(QSize(400, 81))
         self.labelSistema.setMaximumSize(QSize(400, 81))
@@ -163,7 +167,26 @@ class Ui_MainWindow(object):
 "color: rgb(0, 0, 0);")
         self.labelSistema.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
-        self.verticalLayout_2.addWidget(self.labelSistema)
+        self.horizontalLayout_7.addWidget(self.labelSistema)
+
+        self.comboBoxDB = QComboBox(self.widget)
+        self.comboBoxDB.setObjectName(u"comboBoxDB")
+        self.comboBoxDB.setMinimumSize(QSize(441, 31))
+        self.comboBoxDB.setMaximumSize(QSize(441, 31))
+
+        self.horizontalLayout_7.addWidget(self.comboBoxDB)
+
+        self.btnNuevaBase = QPushButton(self.widget)
+        self.btnNuevaBase.setObjectName(u"btnNuevaBase")
+        self.btnNuevaBase.setMinimumSize(QSize(40, 40))
+        self.btnNuevaBase.setMaximumSize(QSize(40, 40))
+        icon3 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.btnNuevaBase.setIcon(icon3)
+
+        self.horizontalLayout_7.addWidget(self.btnNuevaBase)
+
+
+        self.verticalLayout_2.addWidget(self.widget)
 
         self.frame = QFrame(self.frameIndex)
         self.frame.setObjectName(u"frame")
@@ -248,10 +271,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_9.addWidget(self.btnIniciarFoto)
 
-        self.btnCapturarFoto = QPushButton(self.frameBtn)
-        self.btnCapturarFoto.setObjectName(u"btnCapturarFoto")
+        self.btnSubirFoto = QPushButton(self.frameBtn)
+        self.btnSubirFoto.setObjectName(u"btnSubirFoto")
 
-        self.verticalLayout_9.addWidget(self.btnCapturarFoto)
+        self.verticalLayout_9.addWidget(self.btnSubirFoto)
 
         self.labelFirma = QLabel(self.frameBtn)
         self.labelFirma.setObjectName(u"labelFirma")
@@ -265,7 +288,7 @@ class Ui_MainWindow(object):
         self.labelFirma.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self.labelFirma.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.verticalLayout_9.addWidget(self.labelFirma, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.verticalLayout_9.addWidget(self.labelFirma)
 
         self.btnIniciarFirma = QPushButton(self.frameBtn)
         self.btnIniciarFirma.setObjectName(u"btnIniciarFirma")
@@ -658,7 +681,7 @@ class Ui_MainWindow(object):
         self.labelFirmaCredencial.setFont(font6)
         self.labelFirmaCredencial.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.horizontalLayout_6.addWidget(self.frameCredencial)
+        self.horizontalLayout_6.addWidget(self.frameCredencial, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
 
         self.horizontalLayout_5.addWidget(self.previewCredencial)
@@ -697,7 +720,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -707,11 +730,12 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.btnInicio.setText(QCoreApplication.translate("MainWindow", u" Inicio", None))
         self.btnCapturar.setText(QCoreApplication.translate("MainWindow", u" Capturar", None))
-        self.btnExportar.setText(QCoreApplication.translate("MainWindow", u" Exportar", None))
+        self.btnImportar.setText(QCoreApplication.translate("MainWindow", u" Importar", None))
         self.labelSistema.setText(QCoreApplication.translate("MainWindow", u"Sistema Familia Cuajimalpa", None))
+        self.btnNuevaBase.setText("")
         self.labelFoto.setText(QCoreApplication.translate("MainWindow", u"Foto", None))
         self.btnIniciarFoto.setText(QCoreApplication.translate("MainWindow", u"Iniciar Camara", None))
-        self.btnCapturarFoto.setText(QCoreApplication.translate("MainWindow", u"Subir Foto", None))
+        self.btnSubirFoto.setText(QCoreApplication.translate("MainWindow", u"Subir Foto", None))
         self.labelFirma.setText(QCoreApplication.translate("MainWindow", u"Firma", None))
         self.btnIniciarFirma.setText(QCoreApplication.translate("MainWindow", u"Iniciar Firma", None))
         self.btnCapturarFirma.setText(QCoreApplication.translate("MainWindow", u"Capturar Firma", None))
