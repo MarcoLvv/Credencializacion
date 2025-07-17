@@ -7,7 +7,7 @@ from datetime import datetime
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog, QInputDialog
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 
 from src.controllers.capture_controller import CaptureController
 from src.controllers.edit_controller import EditController
@@ -20,7 +20,7 @@ from src.utils.rutas import get_data_dir, get_bases_disponibles, get_bd_path
 from src.views.ventana_principal import Ui_MainWindow
 
 
-def fila_a_usuario(row):
+def fila_a_usuario(row, db, folio_directo=None):
     usuario = TbcUsuarios()
     CAMPOS_MAPPINGS = {
         'NOMBRE': 'Nombre',
@@ -40,6 +40,7 @@ def fila_a_usuario(row):
         'ENTREGADA': 'Entragada'  # Si lo activas después
     }
 
+
     for excel_col, attr in CAMPOS_MAPPINGS.items():
         if pd.isna(row.get(excel_col)):
             setattr(usuario, attr, None)
@@ -58,11 +59,11 @@ def fila_a_usuario(row):
                 valor = str(valor).strip().lower() in ["sí", "si", "1", "true", "x"]
 
             setattr(usuario, attr, valor)
+        pass
 
-    # Algunos valores por default
-    usuario.FolioId = f"AUTO-{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
+    # ✅ Generar folio con lógica correcta
+    usuario.FolioId = db.generar_folio(consecutivo_directo=folio_directo)
     usuario.FechaAlta = datetime.today().date()
-
     return usuario
 
 class VistaPrincipal(QMainWindow):
@@ -225,11 +226,17 @@ class VistaPrincipal(QMainWindow):
 
         try:
             df = pd.read_excel(ruta) if ruta.endswith(".xlsx") else pd.read_csv(ruta)
-            usuarios = []
 
-            for _, row in df.iterrows():
+            # Obtener base del consecutivo
+            from sqlalchemy import func
+            with self.db.Session() as session:
+                consecutivo_base = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
+
+            usuarios = []
+            for offset, (_, row) in enumerate(df.iterrows()):
                 try:
-                    usuario = fila_a_usuario(row)
+                    folio_consecutivo = consecutivo_base + offset + 1
+                    usuario = fila_a_usuario(row, self.db, folio_consecutivo)
                     usuarios.append(usuario)
                 except Exception as e:
                     print(f"❌ Error en fila: {e}")
@@ -239,6 +246,10 @@ class VistaPrincipal(QMainWindow):
 
             QMessageBox.information(self, "Importación completada",
                                     f"{len(usuarios)} credenciales importadas correctamente.")
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error al importar", str(e))
+
 
         except Exception as e:
             QMessageBox.critical(self, "Error al importar", str(e))

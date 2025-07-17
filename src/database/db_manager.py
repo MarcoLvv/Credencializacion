@@ -56,23 +56,41 @@ class DBManager:
         print(f"[DBManager] ✅ Nueva base creada y activada: {ruta.name}")
         return True
 
-    def get_next_consecutive(self):
-        with self.Session() as session:
-            count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
-            return f"{count + 1:05d}"
-
     def get_last(self):
         with self.Session() as session:
             count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
             return f"{count:05d}"
 
-    def generar_folio(self):
+    def get_next_consecutive(self, offset=0):
+        with self.Session() as session:
+            count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
+            return f"{count + 1 + offset:05d}"
+
+    def generar_folio(self, consecutivo_directo=None):
         now = datetime.now()
         año = now.strftime("%Y")
         mes = now.strftime("%m")
         modulo = get_module_id()
-        consecutivo = self.get_next_consecutive()
-        return f"FAMC-{año}{mes}-{modulo}-{consecutivo}"
+        db_name = Path(self.ruta_db).stem
+
+        if consecutivo_directo is None:
+            with self.Session() as session:
+                count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
+                consecutivo = count + 1
+        else:
+            consecutivo = consecutivo_directo
+
+        return f"FAMC-{año}{mes}-{modulo}-{consecutivo:05d}"
+
+    # def generar_folio(self):
+    #     now = datetime.now()
+    #     año = now.strftime("%Y")
+    #     mes = now.strftime("%m")
+    #     modulo = get_module_id()
+    #     consecutivo = self.get_next_consecutive()
+    #    return f"FAMC-{año}{mes}-{modulo}-{consecutivo}"
+
+
 
     def insertar_credencial(self, **datos):
         folio = self.generar_folio()
@@ -105,9 +123,13 @@ class DBManager:
         return folio
 
     def insertar_multiples(self, lista_credenciales):
-        with self.Session() as session:
-            session.add_all(lista_credenciales)
-            session.commit()
+        try:
+            with self.Session() as session:
+                session.add_all(lista_credenciales)
+                session.commit()
+            print(f"✅ Insertados {len(lista_credenciales)} usuarios correctamente.")
+        except Exception as e:
+            print(f"❌ Error al insertar múltiples usuarios: {e}")
 
     def actualizar_ruta_foto(self, folio, nueva_ruta):
         with self.Session() as session:

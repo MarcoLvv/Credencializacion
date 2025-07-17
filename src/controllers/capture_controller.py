@@ -20,7 +20,7 @@ import cv2
 class CaptureController(QObject):
     credencial_actualizada = Signal()
 
-    def __init__(self, main_window,ui , db_manager):
+    def __init__(self, main_window, ui , db_manager):
         super().__init__()
         self.mw = main_window
         self.ui = ui
@@ -183,7 +183,7 @@ class CaptureController(QObject):
 
         if self.modo_edicion and Path(ruta).exists():
             respuesta = QMessageBox.question(
-                self.ui,
+                self.mw.viewCaptura,
                 f"Reemplazar {tipo}",
                 f"Ya existe una {tipo} para este folio.\n¿Deseas reemplazarla?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
