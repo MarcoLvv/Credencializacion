@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'propuesta_principal.ui'
+## Form generated from reading UI file 'propuesta_principalv3.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.1
 ##
@@ -16,65 +16,116 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QDateEdit, QDateTimeEdit, QFrame,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
-    QStackedWidget, QStatusBar, QTableView, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QDateTimeEdit,
+    QFrame, QHBoxLayout, QHeaderView, QLabel,
+    QLineEdit, QMainWindow, QPushButton, QSizePolicy,
+    QSpacerItem, QStackedWidget, QStatusBar, QTableView,
+    QVBoxLayout, QWidget)
+#import resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1175, 725)
+        MainWindow.resize(1218, 770)
+        MainWindow.setMinimumSize(QSize(1218, 770))
+        MainWindow.setStyleSheet(u"QMainWindow#MainWindow{\n"
+"	background-color: qradialgradient(spread:reflect, cx:0.5, cy:0.499, radius:2, fx:0.512088, fy:1, stop:0.0549451 rgba(7, 49, 80, 255), stop:0.0989011 rgba(8, 48, 83, 255), stop:0.917582 rgba(6, 47, 78, 255));\n"
+"	border-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 0, 0, 255), stop:1 rgba(255, 255, 255, 255));\n"
+"border-radius: 25px\n"
+"}")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.buttonsBar = QWidget(self.centralwidget)
+        self.widget_2 = QWidget(self.centralwidget)
+        self.widget_2.setObjectName(u"widget_2")
+        self.widget_2.setMinimumSize(QSize(1200, 731))
+        self.horizontalLayout_3 = QHBoxLayout(self.widget_2)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.buttonsBar = QWidget(self.widget_2)
         self.buttonsBar.setObjectName(u"buttonsBar")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.buttonsBar.sizePolicy().hasHeightForWidth())
+        self.buttonsBar.setSizePolicy(sizePolicy)
+        self.buttonsBar.setMinimumSize(QSize(178, 711))
+        self.buttonsBar.setMaximumSize(QSize(178, 711))
+        self.buttonsBar.setStyleSheet(u"QWidget#buttonsBar{\n"
+"	background-color: qradialgradient(spread:pad, cx:0.5, cy:0.494, radius:0.694, fx:0.5, fy:0.5, stop:0.225275 rgba(10, 54, 84, 255), stop:0.236264 rgba(10, 54, 84, 255), stop:0.796703 rgba(10, 46, 70, 255), stop:0.835165 rgba(10, 46, 70, 255));\n"
+"	border-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:2, fx:0.5, fy:0.5, stop:0 rgba(0, 0, 0, 255), stop:0.401099 rgba(9, 54, 82, 255), stop:0.758242 rgba(14, 76, 118, 255));\n"
+"\n"
+"    border-top-left-radius: 10px;\n"
+"    border-bottom-left-radius: 10px;\n"
+"\n"
+"\n"
+"\n"
+"}")
         self.verticalLayout = QVBoxLayout(self.buttonsBar)
         self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout.addItem(self.verticalSpacer_2)
+
         self.btnInicio = QPushButton(self.buttonsBar)
         self.btnInicio.setObjectName(u"btnInicio")
+        self.btnInicio.setMinimumSize(QSize(160, 70))
+        self.btnInicio.setMaximumSize(QSize(160, 70))
+        font = QFont()
+        font.setFamilies([u"Sans Serif Collection"])
+        font.setPointSize(12)
+        font.setBold(True)
+        font.setStyleStrategy(QFont.PreferAntialias)
+        self.btnInicio.setFont(font)
+        self.btnInicio.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        self.btnInicio.setAutoFillBackground(False)
+        self.btnInicio.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
+"padding-left: 10px;")
+        icon = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoHome))
+        self.btnInicio.setIcon(icon)
 
         self.verticalLayout.addWidget(self.btnInicio)
 
-        self.btnVer = QPushButton(self.buttonsBar)
-        self.btnVer.setObjectName(u"btnVer")
-
-        self.verticalLayout.addWidget(self.btnVer)
-
         self.btnCapturar = QPushButton(self.buttonsBar)
         self.btnCapturar.setObjectName(u"btnCapturar")
+        self.btnCapturar.setMinimumSize(QSize(160, 70))
+        self.btnCapturar.setMaximumSize(QSize(160, 70))
+        font1 = QFont()
+        font1.setFamilies([u"Sans Serif Collection"])
+        font1.setPointSize(12)
+        font1.setBold(True)
+        self.btnCapturar.setFont(font1)
+        self.btnCapturar.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
+"padding-left: 10px;")
+        icon1 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentNew))
+        self.btnCapturar.setIcon(icon1)
 
         self.verticalLayout.addWidget(self.btnCapturar)
 
-        self.btnEditar = QPushButton(self.buttonsBar)
-        self.btnEditar.setObjectName(u"btnEditar")
+        self.btnImportar = QPushButton(self.buttonsBar)
+        self.btnImportar.setObjectName(u"btnImportar")
+        self.btnImportar.setMinimumSize(QSize(160, 70))
+        self.btnImportar.setMaximumSize(QSize(160, 70))
+        self.btnImportar.setFont(font1)
+        self.btnImportar.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
+"padding-left: 10px;")
+        icon2 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoUp))
+        self.btnImportar.setIcon(icon2)
 
-        self.verticalLayout.addWidget(self.btnEditar)
+        self.verticalLayout.addWidget(self.btnImportar)
 
-        self.verticalSpacer = QSpacerItem(160, 350, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer = QSpacerItem(160, 420, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
-        self.btnExportar = QPushButton(self.buttonsBar)
-        self.btnExportar.setObjectName(u"btnExportar")
 
-        self.verticalLayout.addWidget(self.btnExportar)
+        self.horizontalLayout_3.addWidget(self.buttonsBar)
 
-
-        self.horizontalLayout.addWidget(self.buttonsBar)
-
-        self.index = QFrame(self.centralwidget)
-        self.index.setObjectName(u"index")
-        self.index.setFrameShape(QFrame.Shape.StyledPanel)
-        self.index.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_2 = QVBoxLayout(self.index)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.stackedWidget = QStackedWidget(self.index)
+        self.stackedWidget = QStackedWidget(self.widget_2)
         self.stackedWidget.setObjectName(u"stackedWidget")
+        self.stackedWidget.setMinimumSize(QSize(998, 713))
+        self.stackedWidget.setMaximumSize(QSize(998, 713))
         palette = QPalette()
         brush = QBrush(QColor(0, 0, 0, 255))
         brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -87,21 +138,80 @@ class Ui_MainWindow(object):
         self.viewHome.setObjectName(u"viewHome")
         self.verticalLayout_5 = QVBoxLayout(self.viewHome)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.searchBar = QLineEdit(self.viewHome)
-        self.searchBar.setObjectName(u"searchBar")
-
-        self.verticalLayout_5.addWidget(self.searchBar)
-
         self.frameIndex = QFrame(self.viewHome)
         self.frameIndex.setObjectName(u"frameIndex")
+        self.frameIndex.setStyleSheet(u"QFrame#frameIndex{\n"
+"	background-color:rgb(244, 246, 247);\n"
+"    border-top-right-radius: 10px;\n"
+"    border-bottom-right-radius: 10px;\n"
+"\n"
+"}")
         self.frameIndex.setFrameShape(QFrame.Shape.StyledPanel)
         self.frameIndex.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_3 = QVBoxLayout(self.frameIndex)
+        self.verticalLayout_2 = QVBoxLayout(self.frameIndex)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.widget = QWidget(self.frameIndex)
+        self.widget.setObjectName(u"widget")
+        self.horizontalLayout_7 = QHBoxLayout(self.widget)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.labelSistema = QLabel(self.widget)
+        self.labelSistema.setObjectName(u"labelSistema")
+        self.labelSistema.setMinimumSize(QSize(400, 81))
+        self.labelSistema.setMaximumSize(QSize(400, 81))
+        font2 = QFont()
+        font2.setFamilies([u"Sans Serif Collection"])
+        font2.setPointSize(20)
+        font2.setBold(False)
+        self.labelSistema.setFont(font2)
+        self.labelSistema.setStyleSheet(u"\n"
+"color: rgb(0, 0, 0);")
+        self.labelSistema.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+
+        self.horizontalLayout_7.addWidget(self.labelSistema)
+
+        self.comboBoxDB = QComboBox(self.widget)
+        self.comboBoxDB.setObjectName(u"comboBoxDB")
+        self.comboBoxDB.setMinimumSize(QSize(441, 31))
+        self.comboBoxDB.setMaximumSize(QSize(441, 31))
+
+        self.horizontalLayout_7.addWidget(self.comboBoxDB)
+
+        self.btnNuevaBase = QPushButton(self.widget)
+        self.btnNuevaBase.setObjectName(u"btnNuevaBase")
+        self.btnNuevaBase.setMinimumSize(QSize(40, 40))
+        self.btnNuevaBase.setMaximumSize(QSize(40, 40))
+        icon3 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.btnNuevaBase.setIcon(icon3)
+
+        self.horizontalLayout_7.addWidget(self.btnNuevaBase)
+
+
+        self.verticalLayout_2.addWidget(self.widget)
+
+        self.frame = QFrame(self.frameIndex)
+        self.frame.setObjectName(u"frame")
+        self.frame.setMinimumSize(QSize(950, 551))
+        self.frame.setMaximumSize(QSize(950, 551))
+        self.frame.setStyleSheet(u"background-color: rgb(255, 255, 255);")
+        self.frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame.setFrameShadow(QFrame.Shadow.Raised)
+        self.verticalLayout_3 = QVBoxLayout(self.frame)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.usuariosVista = QTableView(self.frameIndex)
+        self.searchBar = QLineEdit(self.frame)
+        self.searchBar.setObjectName(u"searchBar")
+        self.searchBar.setMinimumSize(QSize(435, 31))
+        self.searchBar.setMaximumSize(QSize(435, 31))
+        self.searchBar.setStyleSheet(u"background-color: rgb(245, 248, 247);")
+
+        self.verticalLayout_3.addWidget(self.searchBar)
+
+        self.usuariosVista = QTableView(self.frame)
         self.usuariosVista.setObjectName(u"usuariosVista")
 
         self.verticalLayout_3.addWidget(self.usuariosVista)
+
+
+        self.verticalLayout_2.addWidget(self.frame, 0, Qt.AlignmentFlag.AlignHCenter)
 
 
         self.verticalLayout_5.addWidget(self.frameIndex)
@@ -109,9 +219,6 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.viewHome)
         self.viewCaptura = QWidget()
         self.viewCaptura.setObjectName(u"viewCaptura")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.viewCaptura.sizePolicy().hasHeightForWidth())
         self.viewCaptura.setSizePolicy(sizePolicy)
         self.viewCaptura.setMinimumSize(QSize(923, 666))
@@ -140,71 +247,70 @@ class Ui_MainWindow(object):
         self.frameFotoF.setFrameShadow(QFrame.Shadow.Raised)
         self.verticalLayout_6 = QVBoxLayout(self.frameFotoF)
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.labelFoto = QLabel(self.frameFotoF)
+        self.frameBtn = QFrame(self.frameFotoF)
+        self.frameBtn.setObjectName(u"frameBtn")
+        self.frameBtn.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frameBtn.setFrameShadow(QFrame.Shadow.Raised)
+        self.verticalLayout_9 = QVBoxLayout(self.frameBtn)
+        self.verticalLayout_9.setObjectName(u"verticalLayout_9")
+        self.labelFoto = QLabel(self.frameBtn)
         self.labelFoto.setObjectName(u"labelFoto")
         sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy3.setHorizontalStretch(0)
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.labelFoto.sizePolicy().hasHeightForWidth())
         self.labelFoto.setSizePolicy(sizePolicy3)
-        self.labelFoto.setMaximumSize(QSize(16777215, 291))
+        self.labelFoto.setMinimumSize(QSize(200, 230))
+        self.labelFoto.setMaximumSize(QSize(200, 230))
         self.labelFoto.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.verticalLayout_6.addWidget(self.labelFoto)
+        self.verticalLayout_9.addWidget(self.labelFoto, 0, Qt.AlignmentFlag.AlignHCenter)
 
-        self.labelFirma = QLabel(self.frameFotoF)
-        self.labelFirma.setObjectName(u"labelFirma")
-        sizePolicy3.setHeightForWidth(self.labelFirma.sizePolicy().hasHeightForWidth())
-        self.labelFirma.setSizePolicy(sizePolicy3)
-        self.labelFirma.setMaximumSize(QSize(16777215, 97))
-        font = QFont()
-        font.setBold(False)
-        self.labelFirma.setFont(font)
-        self.labelFirma.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-        self.labelFirma.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.verticalLayout_6.addWidget(self.labelFirma)
-
-
-        self.verticalLayout_7.addWidget(self.frameFotoF)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-        self.verticalLayout_7.addItem(self.verticalSpacer_2)
-
-        self.frameBtn = QFrame(self.widgetFoto)
-        self.frameBtn.setObjectName(u"frameBtn")
-        self.frameBtn.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frameBtn.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_11 = QVBoxLayout(self.frameBtn)
-        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
         self.btnIniciarFoto = QPushButton(self.frameBtn)
         self.btnIniciarFoto.setObjectName(u"btnIniciarFoto")
 
-        self.verticalLayout_11.addWidget(self.btnIniciarFoto)
+        self.verticalLayout_9.addWidget(self.btnIniciarFoto)
+
+        self.btnSubirFoto = QPushButton(self.frameBtn)
+        self.btnSubirFoto.setObjectName(u"btnSubirFoto")
+
+        self.verticalLayout_9.addWidget(self.btnSubirFoto)
+
+        self.labelFirma = QLabel(self.frameBtn)
+        self.labelFirma.setObjectName(u"labelFirma")
+        sizePolicy3.setHeightForWidth(self.labelFirma.sizePolicy().hasHeightForWidth())
+        self.labelFirma.setSizePolicy(sizePolicy3)
+        self.labelFirma.setMinimumSize(QSize(200, 60))
+        self.labelFirma.setMaximumSize(QSize(200, 60))
+        font3 = QFont()
+        font3.setBold(False)
+        self.labelFirma.setFont(font3)
+        self.labelFirma.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        self.labelFirma.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.verticalLayout_9.addWidget(self.labelFirma)
 
         self.btnIniciarFirma = QPushButton(self.frameBtn)
         self.btnIniciarFirma.setObjectName(u"btnIniciarFirma")
 
-        self.verticalLayout_11.addWidget(self.btnIniciarFirma)
-
-        self.btnCapturarFoto = QPushButton(self.frameBtn)
-        self.btnCapturarFoto.setObjectName(u"btnCapturarFoto")
-
-        self.verticalLayout_11.addWidget(self.btnCapturarFoto)
+        self.verticalLayout_9.addWidget(self.btnIniciarFirma)
 
         self.btnCapturarFirma = QPushButton(self.frameBtn)
         self.btnCapturarFirma.setObjectName(u"btnCapturarFirma")
+        self.btnCapturarFirma.setEnabled(False)
 
-        self.verticalLayout_11.addWidget(self.btnCapturarFirma)
+        self.verticalLayout_9.addWidget(self.btnCapturarFirma)
 
-        self.btnGuardarDatos = QPushButton(self.frameBtn)
+
+        self.verticalLayout_6.addWidget(self.frameBtn)
+
+        self.btnGuardarDatos = QPushButton(self.frameFotoF)
         self.btnGuardarDatos.setObjectName(u"btnGuardarDatos")
 
-        self.verticalLayout_11.addWidget(self.btnGuardarDatos)
+        self.verticalLayout_6.addWidget(self.btnGuardarDatos)
 
 
-        self.verticalLayout_7.addWidget(self.frameBtn)
+        self.verticalLayout_7.addWidget(self.frameFotoF)
 
 
         self.horizontalLayout_2.addWidget(self.widgetFoto)
@@ -384,7 +490,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_8.addWidget(self.txt_genero)
 
-        self.genero = QLineEdit(self.frameDatosR)
+        self.genero = QComboBox(self.frameDatosR)
         self.genero.setObjectName(u"genero")
 
         self.verticalLayout_8.addWidget(self.genero)
@@ -420,33 +526,6 @@ class Ui_MainWindow(object):
         self.viewCredencial.setObjectName(u"viewCredencial")
         self.horizontalLayout_5 = QHBoxLayout(self.viewCredencial)
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.btnCredencial = QFrame(self.viewCredencial)
-        self.btnCredencial.setObjectName(u"btnCredencial")
-        self.btnCredencial.setFrameShape(QFrame.Shape.StyledPanel)
-        self.btnCredencial.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_10 = QVBoxLayout(self.btnCredencial)
-        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
-        self.btnImprimir = QPushButton(self.btnCredencial)
-        self.btnImprimir.setObjectName(u"btnImprimir")
-
-        self.verticalLayout_10.addWidget(self.btnImprimir)
-
-        self.pushButton_2 = QPushButton(self.btnCredencial)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-
-        self.verticalLayout_10.addWidget(self.pushButton_2)
-
-        self.verticalSpacer_3 = QSpacerItem(50, 350, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-        self.verticalLayout_10.addItem(self.verticalSpacer_3)
-
-
-        self.horizontalLayout_5.addWidget(self.btnCredencial, 0, Qt.AlignmentFlag.AlignLeft)
-
-        self.leftHorizontalCredencial = QSpacerItem(127, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_5.addItem(self.leftHorizontalCredencial)
-
         self.previewCredencial = QFrame(self.viewCredencial)
         self.previewCredencial.setObjectName(u"previewCredencial")
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -456,10 +535,44 @@ class Ui_MainWindow(object):
         self.previewCredencial.setSizePolicy(sizePolicy4)
         self.previewCredencial.setFrameShape(QFrame.Shape.StyledPanel)
         self.previewCredencial.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_9 = QVBoxLayout(self.previewCredencial)
-        self.verticalLayout_9.setObjectName(u"verticalLayout_9")
+        self.horizontalLayout_6 = QHBoxLayout(self.previewCredencial)
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.btnCredencial = QFrame(self.previewCredencial)
+        self.btnCredencial.setObjectName(u"btnCredencial")
+        self.btnCredencial.setMinimumSize(QSize(171, 695))
+        self.btnCredencial.setMaximumSize(QSize(171, 695))
+        self.btnCredencial.setFrameShape(QFrame.Shape.StyledPanel)
+        self.btnCredencial.setFrameShadow(QFrame.Shadow.Raised)
+        self.verticalLayout_10 = QVBoxLayout(self.btnCredencial)
+        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
+        self.verticalSpacer_4 = QSpacerItem(20, 100, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout_10.addItem(self.verticalSpacer_4)
+
+        self.btnImprimir = QPushButton(self.btnCredencial)
+        self.btnImprimir.setObjectName(u"btnImprimir")
+        self.btnImprimir.setMinimumSize(QSize(140, 45))
+        self.btnImprimir.setMaximumSize(QSize(140, 45))
+
+        self.verticalLayout_10.addWidget(self.btnImprimir, 0, Qt.AlignmentFlag.AlignHCenter)
+
+        self.pushButton_2 = QPushButton(self.btnCredencial)
+        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.pushButton_2.setEnabled(False)
+
+        self.verticalLayout_10.addWidget(self.pushButton_2)
+
+        self.verticalSpacer_3 = QSpacerItem(50, 550, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout_10.addItem(self.verticalSpacer_3)
+
+
+        self.horizontalLayout_6.addWidget(self.btnCredencial, 0, Qt.AlignmentFlag.AlignLeft)
+
         self.frameCredencial = QFrame(self.previewCredencial)
         self.frameCredencial.setObjectName(u"frameCredencial")
+        self.frameCredencial.setMinimumSize(QSize(575, 675))
+        self.frameCredencial.setMaximumSize(QSize(575, 675))
         palette1 = QPalette()
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush)
         palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
@@ -484,11 +597,11 @@ class Ui_MainWindow(object):
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         palette2.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush)
         self.labelCURPCredencial.setPalette(palette2)
-        font1 = QFont()
-        font1.setFamilies([u"Arial Rounded MT"])
-        font1.setPointSize(11)
-        font1.setBold(True)
-        self.labelCURPCredencial.setFont(font1)
+        font4 = QFont()
+        font4.setFamilies([u"Arial Rounded MT"])
+        font4.setPointSize(11)
+        font4.setBold(True)
+        self.labelCURPCredencial.setFont(font4)
         self.labelFolioCredencial = QLabel(self.frameFrontal)
         self.labelFolioCredencial.setObjectName(u"labelFolioCredencial")
         self.labelFolioCredencial.setGeometry(QRect(220, 250, 220, 31))
@@ -498,7 +611,7 @@ class Ui_MainWindow(object):
         palette3.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         palette3.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush)
         self.labelFolioCredencial.setPalette(palette3)
-        self.labelFolioCredencial.setFont(font1)
+        self.labelFolioCredencial.setFont(font4)
         self.labelFotoCredencial = QLabel(self.frameFrontal)
         self.labelFotoCredencial.setObjectName(u"labelFotoCredencial")
         self.labelFotoCredencial.setGeometry(QRect(40, 100, 141, 151))
@@ -511,11 +624,11 @@ class Ui_MainWindow(object):
         palette4.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         palette4.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush)
         self.labelNombreCredencial.setPalette(palette4)
-        font2 = QFont()
-        font2.setFamilies([u"Arial Rounded MT"])
-        font2.setPointSize(15)
-        font2.setBold(True)
-        self.labelNombreCredencial.setFont(font2)
+        font5 = QFont()
+        font5.setFamilies([u"Arial Rounded MT"])
+        font5.setPointSize(15)
+        font5.setBold(True)
+        self.labelNombreCredencial.setFont(font5)
         self.labelFondo = QLabel(self.frameFrontal)
         self.labelFondo.setObjectName(u"labelFondo")
         self.labelFondo.setGeometry(QRect(0, 0, 501, 301))
@@ -531,7 +644,7 @@ class Ui_MainWindow(object):
         palette5.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         palette5.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush)
         self.labelDomicilioCredencial.setPalette(palette5)
-        self.labelDomicilioCredencial.setFont(font1)
+        self.labelDomicilioCredencial.setFont(font4)
         self.labelFondo.raise_()
         self.labelCURPCredencial.raise_()
         self.labelFolioCredencial.raise_()
@@ -562,20 +675,16 @@ class Ui_MainWindow(object):
         palette6.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush)
         palette6.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.WindowText, brush)
         self.labelFirmaCredencial.setPalette(palette6)
-        font3 = QFont()
-        font3.setPointSize(15)
-        font3.setBold(False)
-        self.labelFirmaCredencial.setFont(font3)
+        font6 = QFont()
+        font6.setPointSize(15)
+        font6.setBold(False)
+        self.labelFirmaCredencial.setFont(font6)
         self.labelFirmaCredencial.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.verticalLayout_9.addWidget(self.frameCredencial)
+        self.horizontalLayout_6.addWidget(self.frameCredencial, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
 
         self.horizontalLayout_5.addWidget(self.previewCredencial)
-
-        self.rightHorizontalCredencial = QSpacerItem(145, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-
-        self.horizontalLayout_5.addItem(self.rightHorizontalCredencial)
 
         self.stackedWidget.addWidget(self.viewCredencial)
         self.pagePDF = QWidget()
@@ -599,10 +708,10 @@ class Ui_MainWindow(object):
 
         self.stackedWidget.addWidget(self.pagePDF)
 
-        self.verticalLayout_2.addWidget(self.stackedWidget)
+        self.horizontalLayout_3.addWidget(self.stackedWidget)
 
 
-        self.horizontalLayout.addWidget(self.index)
+        self.horizontalLayout.addWidget(self.widget_2)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QStatusBar(MainWindow)
@@ -611,7 +720,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -619,16 +728,16 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.btnInicio.setText(QCoreApplication.translate("MainWindow", u"Inicio", None))
-        self.btnVer.setText(QCoreApplication.translate("MainWindow", u"Ver", None))
-        self.btnCapturar.setText(QCoreApplication.translate("MainWindow", u"Capturar", None))
-        self.btnEditar.setText(QCoreApplication.translate("MainWindow", u"Editar", None))
-        self.btnExportar.setText(QCoreApplication.translate("MainWindow", u"Exportar", None))
+        self.btnInicio.setText(QCoreApplication.translate("MainWindow", u" Inicio", None))
+        self.btnCapturar.setText(QCoreApplication.translate("MainWindow", u" Capturar", None))
+        self.btnImportar.setText(QCoreApplication.translate("MainWindow", u" Importar", None))
+        self.labelSistema.setText(QCoreApplication.translate("MainWindow", u"Sistema Familia Cuajimalpa", None))
+        self.btnNuevaBase.setText("")
         self.labelFoto.setText(QCoreApplication.translate("MainWindow", u"Foto", None))
-        self.labelFirma.setText(QCoreApplication.translate("MainWindow", u"Firma", None))
         self.btnIniciarFoto.setText(QCoreApplication.translate("MainWindow", u"Iniciar Camara", None))
+        self.btnSubirFoto.setText(QCoreApplication.translate("MainWindow", u"Subir Foto", None))
+        self.labelFirma.setText(QCoreApplication.translate("MainWindow", u"Firma", None))
         self.btnIniciarFirma.setText(QCoreApplication.translate("MainWindow", u"Iniciar Firma", None))
-        self.btnCapturarFoto.setText(QCoreApplication.translate("MainWindow", u"Capturar Foto", None))
         self.btnCapturarFirma.setText(QCoreApplication.translate("MainWindow", u"Capturar Firma", None))
         self.btnGuardarDatos.setText(QCoreApplication.translate("MainWindow", u"Guardar", None))
         self.txt_nombre.setText(QCoreApplication.translate("MainWindow", u"Nombre", None))
@@ -651,7 +760,7 @@ class Ui_MainWindow(object):
         self.txt_celular.setText(QCoreApplication.translate("MainWindow", u"Celular", None))
         self.txt_email.setText(QCoreApplication.translate("MainWindow", u"Email", None))
         self.btnImprimir.setText(QCoreApplication.translate("MainWindow", u"Imprimir", None))
-        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"PushButton", None))
+        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"Cancelar", None))
         self.labelCURPCredencial.setText(QCoreApplication.translate("MainWindow", u"Curp", None))
         self.labelFolioCredencial.setText(QCoreApplication.translate("MainWindow", u"Folio", None))
         self.labelFotoCredencial.setText(QCoreApplication.translate("MainWindow", u"Foto", None))

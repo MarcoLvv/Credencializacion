@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 from tempfile import gettempdir
@@ -20,16 +21,30 @@ def get_data_dir():
     Devuelve la carpeta 'data/' junto al launcher. La crea si no existe.
     """
 
-    data_dir = get_base_dir() / "data"
+    data_dir = get_base_dir() / "data" / "bases"
     data_temp = get_base_dir() / "data" / "temp"
     data_temp.mkdir(parents=True, exist_ok=True)
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
+def get_bases_disponibles():
+    directorio = get_data_dir()
+    return [f for f in os.listdir(directorio) if f.endswith(".db")]
+
+def get_excel_dir():
+    excel_dir = get_data_dir() / "excel"
+    excel_dir.mkdir(parents=True, exist_ok=True)
+
+    return excel_dir
 def get_foto_dir():
     foto_dir = get_data_dir() / "fotos"
     foto_dir.mkdir(parents=True, exist_ok=True)
     return foto_dir
+
+def get_icons_dir():
+    icons_dir = get_data_dir() / "icons"
+    icons_dir.mkdir(parents=True, exist_ok=True)
+    return icons_dir
 
 def get_firma_dir():
     firma_dir = get_data_dir() / "firmas"

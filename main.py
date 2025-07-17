@@ -4,7 +4,7 @@ import json
 from PySide6.QtWidgets import QApplication, QMessageBox, QDialog
 from src.controllers.main_controller import VistaPrincipal
 from src.controllers.modulo_dialog import ModuloDialog
-from src.database.db_manager import init_db
+from src.database.db_manager import DBManager
 from src.utils.config_manager import CONFIG_PATH, get_module_id
 
 
@@ -40,7 +40,7 @@ def main():
 
     # Inicializar la base de datos
     try:
-        init_db()
+        DBManager()
         print("Tablas creadas.")
     except Exception as e:
         print(f"[ERROR] Error al inicializar la base de datos: {e}")
