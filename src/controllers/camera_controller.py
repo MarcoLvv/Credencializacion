@@ -143,7 +143,7 @@ class CameraController:
     def subir_foto_desde_archivo(self):
         """Abre un diálogo para seleccionar una foto del sistema de archivos."""
         ruta, _ = QFileDialog.getOpenFileName(
-            self.parent,
+            self.parent.viewCaptura,
             "Seleccionar foto",
             "",
             "Imágenes (*.png *.jpg *.jpeg *.bmp)"

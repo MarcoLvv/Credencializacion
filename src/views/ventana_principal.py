@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QDateTimeEdit
     QLineEdit, QMainWindow, QPushButton, QSizePolicy,
     QSpacerItem, QStackedWidget, QStatusBar, QTableView,
     QVBoxLayout, QWidget)
-#import resources_rc
+#import resources_rca
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -110,7 +110,7 @@ class Ui_MainWindow(object):
         self.btnImportar.setFont(font1)
         self.btnImportar.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
 "padding-left: 10px;")
-        icon2 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoUp))
+        icon2 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoDown))
         self.btnImportar.setIcon(icon2)
 
         self.verticalLayout.addWidget(self.btnImportar)
@@ -720,7 +720,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
