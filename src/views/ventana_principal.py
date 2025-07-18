@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QDateTimeEdit
     QLineEdit, QMainWindow, QPushButton, QSizePolicy,
     QSpacerItem, QStackedWidget, QStatusBar, QTableView,
     QVBoxLayout, QWidget)
-#import resources_rca
+#import resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -119,6 +119,18 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
+        self.btnImportar_2 = QPushButton(self.buttonsBar)
+        self.btnImportar_2.setObjectName(u"btnImportar_2")
+        self.btnImportar_2.setMinimumSize(QSize(160, 70))
+        self.btnImportar_2.setMaximumSize(QSize(160, 70))
+        self.btnImportar_2.setFont(font1)
+        self.btnImportar_2.setStyleSheet(u"text-align: left;   /* o: right, center */\n"
+"padding-left: 10px;")
+        icon3 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.GoUp))
+        self.btnImportar_2.setIcon(icon3)
+
+        self.verticalLayout.addWidget(self.btnImportar_2)
+
 
         self.horizontalLayout_3.addWidget(self.buttonsBar)
 
@@ -169,21 +181,28 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_7.addWidget(self.labelSistema)
 
-        self.comboBoxDB = QComboBox(self.widget)
+        self.widget_3 = QWidget(self.widget)
+        self.widget_3.setObjectName(u"widget_3")
+        self.horizontalLayout_8 = QHBoxLayout(self.widget_3)
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.comboBoxDB = QComboBox(self.widget_3)
         self.comboBoxDB.setObjectName(u"comboBoxDB")
         self.comboBoxDB.setMinimumSize(QSize(441, 31))
         self.comboBoxDB.setMaximumSize(QSize(441, 31))
 
-        self.horizontalLayout_7.addWidget(self.comboBoxDB)
+        self.horizontalLayout_8.addWidget(self.comboBoxDB, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
 
-        self.btnNuevaBase = QPushButton(self.widget)
+        self.btnNuevaBase = QPushButton(self.widget_3)
         self.btnNuevaBase.setObjectName(u"btnNuevaBase")
         self.btnNuevaBase.setMinimumSize(QSize(40, 40))
         self.btnNuevaBase.setMaximumSize(QSize(40, 40))
-        icon3 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
-        self.btnNuevaBase.setIcon(icon3)
+        icon4 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.ListAdd))
+        self.btnNuevaBase.setIcon(icon4)
 
-        self.horizontalLayout_7.addWidget(self.btnNuevaBase)
+        self.horizontalLayout_8.addWidget(self.btnNuevaBase, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
+
+
+        self.horizontalLayout_7.addWidget(self.widget_3)
 
 
         self.verticalLayout_2.addWidget(self.widget)
@@ -528,11 +547,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.previewCredencial = QFrame(self.viewCredencial)
         self.previewCredencial.setObjectName(u"previewCredencial")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy4.setHorizontalStretch(1)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.previewCredencial.sizePolicy().hasHeightForWidth())
-        self.previewCredencial.setSizePolicy(sizePolicy4)
         self.previewCredencial.setFrameShape(QFrame.Shape.StyledPanel)
         self.previewCredencial.setFrameShadow(QFrame.Shadow.Raised)
         self.horizontalLayout_6 = QHBoxLayout(self.previewCredencial)
@@ -567,7 +581,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.addItem(self.verticalSpacer_3)
 
 
-        self.horizontalLayout_6.addWidget(self.btnCredencial, 0, Qt.AlignmentFlag.AlignLeft)
+        self.horizontalLayout_6.addWidget(self.btnCredencial, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
 
         self.frameCredencial = QFrame(self.previewCredencial)
         self.frameCredencial.setObjectName(u"frameCredencial")
@@ -632,6 +646,7 @@ class Ui_MainWindow(object):
         self.labelFondo = QLabel(self.frameFrontal)
         self.labelFondo.setObjectName(u"labelFondo")
         self.labelFondo.setGeometry(QRect(0, 0, 501, 301))
+        self.labelFondo.setMinimumSize(QSize(501, 301))
         self.labelFondo.setStyleSheet(u"image: url(:/layout/front.png);\n"
 "")
         self.labelFondo.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
@@ -681,10 +696,10 @@ class Ui_MainWindow(object):
         self.labelFirmaCredencial.setFont(font6)
         self.labelFirmaCredencial.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.horizontalLayout_6.addWidget(self.frameCredencial, 0, Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+        self.horizontalLayout_6.addWidget(self.frameCredencial, 0, Qt.AlignmentFlag.AlignHCenter)
 
 
-        self.horizontalLayout_5.addWidget(self.previewCredencial)
+        self.horizontalLayout_5.addWidget(self.previewCredencial, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.stackedWidget.addWidget(self.viewCredencial)
         self.pagePDF = QWidget()
@@ -720,7 +735,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -731,6 +746,7 @@ class Ui_MainWindow(object):
         self.btnInicio.setText(QCoreApplication.translate("MainWindow", u" Inicio", None))
         self.btnCapturar.setText(QCoreApplication.translate("MainWindow", u" Capturar", None))
         self.btnImportar.setText(QCoreApplication.translate("MainWindow", u" Importar", None))
+        self.btnImportar_2.setText(QCoreApplication.translate("MainWindow", u"Exportar", None))
         self.labelSistema.setText(QCoreApplication.translate("MainWindow", u"Sistema Familia Cuajimalpa", None))
         self.btnNuevaBase.setText("")
         self.labelFoto.setText(QCoreApplication.translate("MainWindow", u"Foto", None))

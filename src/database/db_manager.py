@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from src.config.database_config import Base
 from src.models.credencial_model import TbcUsuarios
 from src.utils.config_manager import get_module_id
-from src.utils.rutas import get_data_dir
+from src.utils.rutas import get_data_db_dir
 
 
 def crear_base_de_datos(path_db):
@@ -19,7 +19,7 @@ def crear_base_de_datos(path_db):
 class DBManager:
     def __init__(self, ruta_db=None):
         # Si no se proporciona ruta, por defecto data/base.db
-        self.ruta_db = Path(ruta_db) if ruta_db else get_data_dir() / "base.db"
+        self.ruta_db = Path(ruta_db) if ruta_db else get_data_db_dir() / "base.db"
 
         self.engine = create_engine(f"sqlite:///{str(self.ruta_db)}")
 
@@ -47,7 +47,7 @@ class DBManager:
         """
         Crea una nueva base con el nombre proporcionado dentro de /data/bases
         """
-        ruta = get_data_dir() / f"{nombre_archivo}.db"
+        ruta = get_data_db_dir() / f"{nombre_archivo}.db"
         if ruta.exists():
             print(f"[DBManager] ⚠️ La base {ruta.name} ya existe.")
             return False

@@ -16,28 +16,35 @@ def get_base_dir():
 
 
 
-def get_data_dir():
+def get_data_db_dir():
     """
     Devuelve la carpeta 'data/' junto al launcher. La crea si no existe.
     """
 
-    data_dir = get_base_dir() / "data" / "bases"
-    data_temp = get_base_dir() / "data" / "temp"
-    data_temp.mkdir(parents=True, exist_ok=True)
-    data_dir.mkdir(parents=True, exist_ok=True)
+    data_db_dir = get_base_dir() / "data" / "bases"
+    data_db_temp = get_base_dir() / "data" / "temp"
+    data_db_temp.mkdir(parents=True, exist_ok=True)
+    data_db_dir.mkdir(parents=True, exist_ok=True)
+    return data_db_dir
+
+def get_data_dir():
+    """
+    Devuelve la carpeta 'data/' junto al launcher. La crea si no existe.
+    """
+    data_dir = get_base_dir() / "data"
     return data_dir
 
 def get_bases_disponibles():
-    directorio = get_data_dir()
+    directorio = get_data_db_dir()
     return [f for f in os.listdir(directorio) if f.endswith(".db")]
 
 def get_excel_dir():
-    excel_dir = get_data_dir() / "excel"
+    excel_dir = get_data_db_dir() / "excel"
     excel_dir.mkdir(parents=True, exist_ok=True)
 
     return excel_dir
 def get_foto_dir():
-    foto_dir = get_data_dir() / "fotos"
+    foto_dir = get_data_db_dir() / "fotos"
     foto_dir.mkdir(parents=True, exist_ok=True)
     return foto_dir
 
@@ -90,7 +97,7 @@ def get_firma_path(folio_id: str):
 # Rutas Fijas para layouts.
 
 def get_bd_path():
-    return get_data_dir()
+    return get_data_db_dir()
 
 def get_configuration():
     return get_data_dir() / "config.ini"

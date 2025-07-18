@@ -194,30 +194,6 @@ class CaptureController(QObject):
         guardar_imagen_desde_label(label, ruta)
         return ruta
 
-    def cargar_para_edicion(self, credencial):
-        self.limpiar_formulario()
-        self.modo_edicion = True
-        self.credencial_editando = credencial
-
-        # Llenar campos
-        self.ui.nombre.setText(credencial.Nombre)
-        # ... el resto igual ...
-
-        # Foto
-        if credencial.RutaFoto and Path(credencial.RutaFoto).exists():
-            guardar_imagen_desde_label(self.ui.labelFoto, credencial.RutaFoto, modo='cargar')
-            self.camera_ctrl.estado = 2  # Repetir
-            self.ui.btnIniciarFoto.setText("Repetir")
-        else:
-            self.ui.labelFoto.clear()
-            self.ui.labelFoto.setText("Cámara no activa")
-            self.ui.labelFoto.setStyleSheet("color: gray; font-style: italic;")
-            self.camera_ctrl.estado = 0
-            self.ui.btnIniciarFoto.setText("Iniciar cámara")
-
-        # Firma
-        if credencial.RutaFirma and Path(credencial.RutaFirma).exists():
-            guardar_imagen_desde_label(self.ui.labelFirma, credencial.RutaFirma, modo='cargar')
 
     def _obtener_folio_actual(self):
         if self.modo_edicion and self.credencial_editando:

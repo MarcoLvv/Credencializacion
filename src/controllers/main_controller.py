@@ -16,7 +16,7 @@ from src.database.db_manager import DBManager
 from src.delegates.action_delegate import ActionDelegate
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
-from src.utils.rutas import get_data_dir, get_bases_disponibles, get_bd_path
+from src.utils.rutas import get_bases_disponibles, get_bd_path, get_data_db_dir
 from src.views.ventana_principal import Ui_MainWindow
 
 
@@ -119,7 +119,7 @@ class VistaPrincipal(QMainWindow):
     def cargar_bases(self):
         self.ui.comboBoxDB.clear()
 
-        directorio = get_data_dir()
+        directorio = get_data_db_dir()
         bases = [f for f in os.listdir(directorio) if f.endswith(".db")]
 
         self.ui.comboBoxDB.addItems(bases)
@@ -151,7 +151,7 @@ class VistaPrincipal(QMainWindow):
         nombre, ok = QInputDialog.getText(self, "Nueva Base de Datos", "Nombre del archivo:")
         if ok and nombre.strip():
             nombre = nombre.strip()
-            ruta_db = get_data_dir() / f"{nombre}.db"
+            ruta_db = get_data_db_dir() / f"{nombre}.db"
 
             if ruta_db.exists():
                 QMessageBox.warning(self, "Base existente", f"Ya existe una base con el nombre '{nombre}'.")
