@@ -5,9 +5,9 @@ from pathlib import Path
 import pandas as pd
 from datetime import datetime
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog, QInputDialog
-from sqlalchemy import create_engine, func
+
 
 from src.controllers.capture_controller import CaptureController
 from src.controllers.edit_controller import EditController
@@ -16,13 +16,13 @@ from src.database.db_manager import DBManager
 from src.delegates.action_delegate import ActionDelegate
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
-from src.utils.rutas import get_bases_disponibles, get_bd_path, get_data_db_dir
+from src.utils.rutas import get_bd_path, get_data_db_dir, get_data_dir
 from src.views.ventana_principal import Ui_MainWindow
 
 
 def fila_a_usuario(row, db, folio_directo=None):
     usuario = TbcUsuarios()
-    CAMPOS_MAPPINGS = {
+    mapeo_campos = {
         'NOMBRE': 'Nombre',
         'APELLIDO PATERNO': 'Paterno',
         'APELLIDO MATERNO': 'Materno',
@@ -41,7 +41,7 @@ def fila_a_usuario(row, db, folio_directo=None):
     }
 
 
-    for excel_col, attr in CAMPOS_MAPPINGS.items():
+    for excel_col, attr in mapeo_campos.items():
         if pd.isna(row.get(excel_col)):
             setattr(usuario, attr, None)
         else:
@@ -74,55 +74,39 @@ class VistaPrincipal(QMainWindow):
         self.ui.setupUi(self)
 
         # Inicializar rutas de bases de datos disponibles
-        self.db_paths = get_bases_disponibles()
-        if not self.db_paths:
-            QMessageBox.warning(self, "Sin bases", "No se encontraron bases de datos en la carpeta.")
+        self.db_path = get_bd_path()
+        if not self.db_path:
+            QMessageBox.warning(self, "Sin bases", "No se encontro base de datos en la carpeta.")
             return
 
-        # Establecer base inicial (la primera del comboBox)
-        base_inicial = self.db_paths[0]
-        self.ui.comboBoxDB.addItems(self.db_paths)
+        self.db = DBManager()
 
-        self.db = DBManager(base_inicial)
 
         # Inicializar controladores con DB ya configurada
-        self.capture_controller = CaptureController(self.mw, self.ui, self.db)
-        self.edit_ctrl = EditController(self, self.capture_controller)
+
         self.preview_ctrl = PrevisualizacionController(self.ui)
+        self.capture_controller = CaptureController(self.mw, self.ui, self.db, self.preview_ctrl)
+        self.edit_ctrl = EditController(self, self.capture_controller)
 
 
         # Crear instancia DBManager con la ruta de la base inicial
         self.capture_controller.actualizar_db(self.db)
 
         # Conexiones de botones
-        self.capture_controller.credencial_actualizada.connect(self.load_table)
-        self.ui.searchBar.textChanged.connect(self.load_table)
+        self.capture_controller.credencial_actualizada.connect(self.recargar_tabla)
+        self.ui.searchBar.textChanged.connect(self.recargar_tabla)
         self.ui.btnCapturar.clicked.connect(self.mostrar_formulario_captura)
         self.ui.btnInicio.clicked.connect(self.mostrar_home)
         self.ui.btnImportar.clicked.connect(self.importar_excel)
-        self.ui.btnNuevaBase.clicked.connect(self.crear_nueva_base)
 
         # Conexión del ComboBox para cambiar base
-        self.ui.comboBoxDB.currentIndexChanged.connect(self.cambiar_base_desde_combo)
 
         self.model_db = TbcUsuariosDAO()
         self.delegate_configurado = False
 
-        self.load_table()
+        self.recargar_tabla()
         self.mostrar_home()
 
-    def cambiar_base_desde_combo(self):
-        nombre_archivo = self.ui.comboBoxDB.currentText()
-        ruta_nueva = get_bd_path() / nombre_archivo
-        self.cambiar_y_cargar_base(ruta_nueva)
-
-    def cargar_bases(self):
-        self.ui.comboBoxDB.clear()
-
-        directorio = get_data_db_dir()
-        bases = [f for f in os.listdir(directorio) if f.endswith(".db")]
-
-        self.ui.comboBoxDB.addItems(bases)
 
     def load_table(self):
         """Carga las credenciales y las muestra en la tabla, aplicando filtro si hay texto."""
@@ -147,33 +131,6 @@ class VistaPrincipal(QMainWindow):
             self.action_delegate.verClicked.connect(self.ver_usuario_por_fila)
             self.delegate_configurado = True
 
-    def crear_nueva_base(self):
-        nombre, ok = QInputDialog.getText(self, "Nueva Base de Datos", "Nombre del archivo:")
-        if ok and nombre.strip():
-            nombre = nombre.strip()
-            ruta_db = get_data_db_dir() / f"{nombre}.db"
-
-            if ruta_db.exists():
-                QMessageBox.warning(self, "Base existente", f"Ya existe una base con el nombre '{nombre}'.")
-                return
-
-            creada = self.db.crear_base_nueva(nombre)
-            if creada:
-                self.cargar_bases()
-                self.ui.comboBoxDB.setCurrentText(nombre)
-                # No se llama aquí a recargar_tabla() porque cambiar_base_desde_combo se disparará
-            else:
-                QMessageBox.critical(self, "Error", f"No se pudo crear la base '{nombre}'.")
-        else:
-            print("[INFO] Creación cancelada o nombre vacío.")
-
-    def cambiar_y_cargar_base(self, ruta_db: Path):
-        self.db = DBManager(ruta_db)
-        self.capture_controller.db = self.db
-
-        # Esperar breve tiempo antes de cargar tabla para evitar acceso prematuro
-        QTimer.singleShot(100, self.load_table)
-
     def mostrar_formulario_captura(self):
         """Prepara el formulario para una nueva captura."""
         self.capture_controller.modo_edicion = False
@@ -196,17 +153,18 @@ class VistaPrincipal(QMainWindow):
 
     def editar_usuario_por_fila(self, fila):
         """Carga una credencial para edición."""
+        self.capture_controller.camera_ctrl.preparar_estado_captura()
         model = self.ui.usuariosVista.model()
         credencial = model.obtener_datos_fila(fila)
-        self.capture_controller.camera_ctrl.preparar_estado_captura()
 
-        self.edit_ctrl._mostrar_formulario_captura(credencial)
+        self.edit_ctrl.mostrar_formulario_captura(credencial)
         self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
 
     def ver_usuario_por_fila(self, fila):
         """Muestra una credencial en modo previsualización."""
         model = self.ui.usuariosVista.model()
         credencial = model.obtener_datos_fila(fila)
+        print(model)
         self.preview_ctrl.mostrar_credencial(credencial)
         self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
 
@@ -242,32 +200,13 @@ class VistaPrincipal(QMainWindow):
                     print(f"❌ Error en fila: {e}")
 
             self.db.insertar_multiples(usuarios)
-            self.load_table()
+            self.recargar_tabla()
 
             QMessageBox.information(self, "Importación completada",
                                     f"{len(usuarios)} credenciales importadas correctamente.")
 
         except Exception as e:
             QMessageBox.critical(self, "Error al importar", str(e))
-
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error al importar", str(e))
-
-    def cambiar_base_datos(self, nombre_base):
-
-        # Construir ruta completa
-        ruta = get_data_dir() / nombre_base  # o usa Path.joinpath si prefieres
-
-        # Cambiar base de datos en DBManager
-        self.db.cambiar_base(ruta)
-
-        # Reconstruir sesión SQLAlchemy
-        self.session = self.db.get_session()
-
-        # Recargar el modelo con datos de la nueva base
-        self.load_table()
-
 
     def recargar_tabla(self):
         self.load_table()
@@ -292,16 +231,6 @@ class VistaPrincipal(QMainWindow):
         except Exception as e:
             print(f"⚠️ Error actualizando vista: {e}")
 
-    #self.ui.btnCargarBase.clicked.connect(self.seleccionar_base_datos_existente)
 
-    # def seleccionar_base_datos_existente(self):
-    #     ruta, _ = QFileDialog.getOpenFileName(self, "Seleccionar base de datos", "", "Archivos SQLite (*.db)")
-    #     if ruta:
-    #         nombre = os.path.basename(ruta)
-    #         destino = os.path.join(get_data_dir(), nombre)
-    #         if not os.path.exists(destino):
-    #             shutil.copy(ruta, destino)
-    #         self.cargar_bases_disponibles()
-    #         self.ui.comboBoxDB.setCurrentText(nombre)
 
 

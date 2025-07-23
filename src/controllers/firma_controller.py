@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QMessageBox
 from src.database.db_manager import DBManager
 from PIL import Image
 
-from src.utils.rutas import get_foto_dir, get_temp_firma_path
+from src.utils.rutas import get_firma_dir, get_temp_firma_path
 
 
 class FirmaController:
@@ -15,7 +15,7 @@ class FirmaController:
         self.label_firma = label_firma  # QLabel donde se mostrará la firma
 
         self.db = DBManager()
-        self.firma_dir = get_foto_dir()
+        self.firma_dir = get_firma_dir()
         self.ruta_firma_actual = None
 
         # Estado: 0 = Iniciar cámara, 1 = Capturar, 2 = Repetir

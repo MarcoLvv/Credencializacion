@@ -14,21 +14,13 @@ class EditController:
         self.db = DBManager()
         self.capture_ctrl = capture_controller  # ✅ Reutiliza el que ya tiene estado y conexión real
 
-        # Conectar eventos de edición
-        #self.ui.searchBar.textChanged.connect(self.load_table)
-        #self.ui.btnEditar.clicked.connect(self._editar_seleccionado)
-        #desconectar_btn_guardar(self.ui)
-
-
-        #self.ui.usuariosVista.doubleClicked.connect(self.edit_ctrl._editar_usuario)
-
     def _editar_usuario(self, index):
         """Cuando se hace doble clic sobre una fila."""
         row = index.row()
         model = self.ui.usuariosVista.model()
         credencial = model.get_filter(row)
 
-        self._mostrar_formulario_captura(credencial)
+        self.mostrar_formulario_captura(credencial)
 
     def _editar_seleccionado(self):
         """Cuando se hace clic en el botón 'Editar'."""
@@ -41,17 +33,17 @@ class EditController:
         model = self.ui.usuariosVista.model()
         credencial = model.obtener_datos_fila(row)
 
-        self._mostrar_formulario_captura(credencial)
+        self.mostrar_formulario_captura(credencial)
 
-    def _mostrar_formulario_captura(self, credencial):
+    def mostrar_formulario_captura(self, credencial):
         self.cargar_para_edicion(credencial)  # ✅ Esto ya limpia y carga
         self.ui.usuariosVista.clearSelection()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.viewHome)
 
     def cargar_para_edicion(self, credencial):
         self.capture_ctrl.limpiar_formulario()
-        self.modo_edicion = True
-        self.credencial_editando = credencial
+        self.capture_ctrl.modo_edicion = True
+        self.capture_ctrl.credencial_editando = credencial
 
         # Llenar campos
         self.ui.nombre.setText(credencial.Nombre)

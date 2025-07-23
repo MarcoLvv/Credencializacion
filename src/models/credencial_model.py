@@ -85,6 +85,8 @@ class TbcUsuariosDAO:
             return []
 
 
+
+
 # 🔍 Funciones de validación para estructura de base de datos
 
 def obtener_campos_modelo():

@@ -8,12 +8,13 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QMessageBox, QSizePolicy
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
-from src.integrations.impresora_zebra import generar_pdf_doble_cara
-from src.utils.rutas import get_layout_front, get_layout_back, get_layout_QR, get_temp_credencial_paths, get_foto_dir
+from src.utils.pdf_utils import generar_pdf_doble_cara
+from src.utils.rutas import get_background_front_side, get_background_back_side, get_layout_QR, get_temp_credencial_sides_paths, get_foto_dir
 
 
 class PrevisualizacionController:
     def __init__(self, ui):
+        print("[DEBUG] PrevisualizacionController inicializado")
         self.ui = ui
         self.imagen_frontal = None
         self.imagen_reverso = None
@@ -24,8 +25,8 @@ class PrevisualizacionController:
 
     def mostrar_credencial(self, data):
         # Cargar imágenes de fondo
-        fondo_path = get_layout_front()
-        fondo_path_posterior = get_layout_back()
+        fondo_path = get_background_front_side()
+        fondo_path_posterior = get_background_back_side()
         fondo_path_qr = get_layout_QR()
 
         self.ui.labelFondo.setPixmap(QPixmap(str(fondo_path)))
@@ -46,14 +47,14 @@ class PrevisualizacionController:
 
         # Habilita el ajuste automático del texto
         self.ui.labelDomicilioCredencial.setWordWrap(True)
-        
+
         # Si estás usando layouts, asegúrate que el layout permita crecimiento vertical
         self.ui.labelDomicilioCredencial.setSizePolicy(
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Maximum
         )
         if isinstance(data, dict):
-            folio = data.get("FolioId", "")
+            folio_id = data.get("FolioId", "")
             nombre = data.get("Nombre", "")
             paterno = data.get("Paterno", "")
             materno = data.get("Materno", "")
@@ -68,9 +69,8 @@ class PrevisualizacionController:
             municipio = data.get("Municipio", "")
             ruta_foto = data.get("RutaFoto", "")
             ruta_firma = data.get("RutaFima", "")
-
         else:
-            folio = data.FolioId
+            folio_id = data.FolioId
             nombre = data.Nombre
             paterno = data.Paterno
             materno = data.Materno
@@ -94,7 +94,7 @@ class PrevisualizacionController:
         self.ui.labelDomicilioCredencial.setText(Domicilio)
 
         self.ui.labelCURPCredencial.setText(curp)
-        self.ui.labelFolioCredencial.setText(folio)
+        self.ui.labelFolioCredencial.setText(folio_id)
 
         if ruta_foto and os.path.exists(ruta_foto):
             self.ui.labelFotoCredencial.setPixmap(QPixmap(ruta_foto))
@@ -130,7 +130,7 @@ class PrevisualizacionController:
         try:
             self.limpiar_temporales()  # Borra archivos antiguos si aplica
 
-            ruta_frontal, ruta_posterior = get_temp_credencial_paths()
+            ruta_frontal, ruta_posterior = get_temp_credencial_sides_paths()
 
             # Captura los pixmaps de los frames
             pixmap_frontal = self.ui.frameFrontal.grab()
@@ -166,6 +166,7 @@ class PrevisualizacionController:
         print(f"[✔] Credencial guardada en:\n - {frontal_final}\n - {posterior_final}")
 
     def mostrar_pdf_en_webview(self):
+        print("[DEBUG] mostrar_pdf_en_webview llamado")
         try:
             # if not self.imagen_frontal or not self.imagen_reverso:
             #     raise Exception("No hay imágenes para generar el PDF.")
@@ -179,22 +180,19 @@ class PrevisualizacionController:
             if self.ruta_pdf_temporal:
                 webbrowser.open(self.ruta_pdf_temporal)
 
-            # self.web_view.load(str(self.ruta_pdf_temporal))
-            #
-            # self.ui.stackedWidget.setCurrentWidget(self.ui.pagePDF)
 
         except Exception as e:
             print(f"[ERROR] No se pudo mostrar el PDF: {e}")
             QMessageBox.critical(None, "Error", f"No se pudo mostrar el PDF: {e}")
 
-    def imprimir_credencial(self):
-        try:
-            if not self.imagen_frontal or not self.imagen_reverso:
-                raise Exception("No hay imágenes listas para imprimir.")
-            generar_pdf_doble_cara(self.imagen_frontal, self.imagen_reverso)
-            QMessageBox.information(None, "Impresión", "Trabajo enviado a Zebra ZC300.")
-        except Exception as e:
-            QMessageBox.critical(None, "Error de impresión", str(e))
+    # def imprimir_credencial(self):
+    #     try:
+    #         if not self.imagen_frontal or not self.imagen_reverso:
+    #             raise Exception("No hay imágenes listas para imprimir.")
+    #         generar_pdf_doble_cara(self.imagen_frontal, self.imagen_reverso)
+    #         QMessageBox.information(None, "Impresión", "Trabajo enviado a Zebra ZC300.")
+    #     except Exception as e:
+    #         QMessageBox.critical(None, "Error de impresión", str(e))
 
     def set_imagenes_credencial(self, frontal_path, reverso_path):
         self.imagen_frontal = frontal_path

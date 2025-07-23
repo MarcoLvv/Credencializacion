@@ -17,40 +17,13 @@ def guardar_imagen_desde_label(label, path, modo='guardar'):
 def guardar_archivo_temporal(origen: Path, destino: Path, nombre: str):
     if not origen.exists():
         print(f"[ADVERTENCIA] {nombre} temporal no encontrada.")
-        return False
+        return None
 
     shutil.copy(origen, destino)
     print(f"[DEBUG] {nombre} guardada: {destino}")
 
     origen.unlink(missing_ok=True)  # Limpieza
-    return True
-
-
-# src/utils/helpers.py
-
-def desconectar_senal(widget, senal, funcion=None):
-    """
-    Desconecta una señal de un widget de forma segura.
-
-    Parámetros:
-    - widget: el objeto que emite la señal (ej. QPushButton).
-    - senal: la señal a desconectar (ej. widget.clicked).
-    - funcion: opcional, si solo deseas desconectar una función específica.
-    """
-    try:
-        if funcion:
-            senal.disconnect(funcion)
-        else:
-            senal.disconnect()
-    except (TypeError, RuntimeError):
-        pass  # La señal no estaba conectada o ya fue eliminada
-
-def desconectar_btn_guardar(ui):
-    try:
-        if hasattr(ui, "btnGuardarDatos"):
-            ui.btnGuardarDatos.clicked.disconnect()
-    except (TypeError, RuntimeWarning):
-        pass
+    return str(destino)
 
 
 def recolectar_datos_formulario(ui):
@@ -79,3 +52,30 @@ def recolectar_datos_formulario(ui):
         "Email": ui.email.text().strip()
 
     }
+
+
+
+def desconectar_senal(widget, senal, funcion=None):
+    """
+    Desconecta una señal de un widget de forma segura.
+
+    Parámetros:
+    - widget: el objeto que emite la señal (ej. QPushButton).
+    - senal: la señal a desconectar (ej. widget.clicked).
+    - funcion: opcional, si solo deseas desconectar una función específica.
+    """
+    try:
+        if funcion:
+            senal.disconnect(funcion)
+        else:
+            senal.disconnect()
+    except (TypeError, RuntimeError):
+        pass  # La señal no estaba conectada o ya fue eliminada
+
+
+def desconectar_btn_guardar(ui):
+    try:
+        if hasattr(ui, "btnGuardarDatos"):
+            ui.btnGuardarDatos.clicked.disconnect()
+    except (TypeError, RuntimeWarning):
+        pass

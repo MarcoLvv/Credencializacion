@@ -1,23 +1,9 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-from src.utils.rutas import get_bd_path
+from sqlalchemy.orm import sessionmaker, declarative_base
+from src.utils.rutas import get_bd_path  # Ruta fija a la base principal
 
-# DB_PATH = get_bd_path() / "credencialesv2.db"
-# engine = create_engine(f'sqlite:///{DB_PATH}')
-# SessionLocal = sessionmaker(bind=engine)
-# Base = declarative_base()
-
+DB_PATH = get_bd_path()  # Siempre retorna la ruta de una única base fija
+engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
+SessionLocal = sessionmaker(bind=engine)
 
 Base = declarative_base()
-
-# Variables globales
-engine = None
-SessionLocal = None
-
-def cambiar_db_path(nueva_ruta):
-    global engine, SessionLocal
-    engine = create_engine(f"sqlite:///{nueva_ruta}", echo=False, future=True)
-    SessionLocal = sessionmaker(bind=engine)
-
-# Inicial por defecto
-cambiar_db_path(get_bd_path())

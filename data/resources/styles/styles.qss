@@ -99,7 +99,19 @@ QWidget#viewCaptura{
 }
 
 
+QFrame#previewCredencial{
+    background-color: Transparent;
+}
+QFrame#frameCredencial{
+    background-color: Transparent;
 
+
+}
+
+QFrame#btnCredencial{
+    background-color: Transparent;
+
+}
 QFrame#frameDatosL{
     background-color: #F0F4F8;
     alternate-background-color: #D0E6F5;

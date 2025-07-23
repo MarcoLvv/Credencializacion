@@ -10,10 +10,10 @@ class ActionDelegate(QStyledItemDelegate):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        icon_path = get_icons_dir() / "file-edit.png"
-        slider_path = get_icons_dir() / "slider.png"
-        self.editar_icon = QIcon(str(icon_path))  # ✔️ QIcon desde la ruta
-        self.ver_icon = QIcon(str(slider_path))
+        edit_icon_path = get_icons_dir() / "edit.png"
+        view_icon_path = get_icons_dir() / "view.png"
+        self.editar_icon = QIcon(str(edit_icon_path))  # ✔️ QIcon desde la ruta
+        self.ver_icon = QIcon(str(view_icon_path))
 
     def paint(self, painter, option, index):
         icon_size = QSize(20, 20)  # Tamaño de los íconos
