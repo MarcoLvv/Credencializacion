@@ -18,7 +18,6 @@ class PrevisualizacionController:
         self.ui = ui
         self.imagen_frontal = None
         self.imagen_reverso = None
-        self.web_view: QWebEngineView = self.ui.webPreview  # Asumiendo que ya está creado desde QtDesigner
         self.ruta_pdf_temporal = None
 
         self.ui.btnImprimir.clicked.connect(self.mostrar_pdf_en_webview)

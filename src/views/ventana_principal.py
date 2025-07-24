@@ -15,7 +15,6 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QDateTimeEdit,
     QFrame, QHBoxLayout, QHeaderView, QLabel,
     QLineEdit, QMainWindow, QPushButton, QSizePolicy,
@@ -243,20 +242,18 @@ class Ui_MainWindow(object):
         self.frameFotoF.setFrameShadow(QFrame.Shadow.Raised)
         self.verticalLayout_6 = QVBoxLayout(self.frameFotoF)
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.frameBtn = QFrame(self.frameFotoF)
-        self.frameBtn.setObjectName(u"frameBtn")
-        self.frameBtn.setFrameShape(QFrame.Shape.StyledPanel)
-        self.frameBtn.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_9 = QVBoxLayout(self.frameBtn)
+        self.widgetBtn = QWidget(self.frameFotoF)
+        self.widgetBtn.setObjectName(u"widgetBtn")
+        self.verticalLayout_9 = QVBoxLayout(self.widgetBtn)
         self.verticalLayout_9.setObjectName(u"verticalLayout_9")
-        self.comboBoxCamera = QComboBox(self.frameBtn)
+        self.comboBoxCamera = QComboBox(self.widgetBtn)
         self.comboBoxCamera.setObjectName(u"comboBoxCamera")
         self.comboBoxCamera.setMinimumSize(QSize(217, 24))
         self.comboBoxCamera.setMaximumSize(QSize(217, 24))
 
         self.verticalLayout_9.addWidget(self.comboBoxCamera)
 
-        self.labelFoto = QLabel(self.frameBtn)
+        self.labelFoto = QLabel(self.widgetBtn)
         self.labelFoto.setObjectName(u"labelFoto")
         sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy3.setHorizontalStretch(0)
@@ -269,17 +266,21 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_9.addWidget(self.labelFoto, 0, Qt.AlignmentFlag.AlignHCenter)
 
-        self.btnIniciarFoto = QPushButton(self.frameBtn)
+        self.btnIniciarFoto = QPushButton(self.widgetBtn)
         self.btnIniciarFoto.setObjectName(u"btnIniciarFoto")
+        icon4 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.CameraPhoto))
+        self.btnIniciarFoto.setIcon(icon4)
 
         self.verticalLayout_9.addWidget(self.btnIniciarFoto)
 
-        self.btnSubirFoto = QPushButton(self.frameBtn)
+        self.btnSubirFoto = QPushButton(self.widgetBtn)
         self.btnSubirFoto.setObjectName(u"btnSubirFoto")
+        icon5 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.FolderOpen))
+        self.btnSubirFoto.setIcon(icon5)
 
         self.verticalLayout_9.addWidget(self.btnSubirFoto)
 
-        self.labelFirma = QLabel(self.frameBtn)
+        self.labelFirma = QLabel(self.widgetBtn)
         self.labelFirma.setObjectName(u"labelFirma")
         sizePolicy3.setHeightForWidth(self.labelFirma.sizePolicy().hasHeightForWidth())
         self.labelFirma.setSizePolicy(sizePolicy3)
@@ -293,22 +294,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_9.addWidget(self.labelFirma)
 
-        self.btnIniciarFirma = QPushButton(self.frameBtn)
+        self.btnIniciarFirma = QPushButton(self.widgetBtn)
         self.btnIniciarFirma.setObjectName(u"btnIniciarFirma")
+        icon6 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.MailMessageNew))
+        self.btnIniciarFirma.setIcon(icon6)
 
         self.verticalLayout_9.addWidget(self.btnIniciarFirma)
 
-        self.btnCapturarFirma = QPushButton(self.frameBtn)
+        self.btnCapturarFirma = QPushButton(self.widgetBtn)
         self.btnCapturarFirma.setObjectName(u"btnCapturarFirma")
         self.btnCapturarFirma.setEnabled(False)
 
         self.verticalLayout_9.addWidget(self.btnCapturarFirma)
 
 
-        self.verticalLayout_6.addWidget(self.frameBtn)
+        self.verticalLayout_6.addWidget(self.widgetBtn)
 
         self.btnGuardarDatos = QPushButton(self.frameFotoF)
         self.btnGuardarDatos.setObjectName(u"btnGuardarDatos")
+        icon7 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentSave))
+        self.btnGuardarDatos.setIcon(icon7)
 
         self.verticalLayout_6.addWidget(self.btnGuardarDatos)
 
@@ -549,6 +554,8 @@ class Ui_MainWindow(object):
         self.btnImprimir.setObjectName(u"btnImprimir")
         self.btnImprimir.setMinimumSize(QSize(140, 45))
         self.btnImprimir.setMaximumSize(QSize(140, 45))
+        icon8 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentPrint))
+        self.btnImprimir.setIcon(icon8)
 
         self.verticalLayout_10.addWidget(self.btnImprimir)
 
@@ -717,26 +724,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addWidget(self.previewCredencial, 0, Qt.AlignmentFlag.AlignLeft)
 
         self.stackedWidget.addWidget(self.viewCredencial)
-        self.pagePDF = QWidget()
-        self.pagePDF.setObjectName(u"pagePDF")
-        self.verticalLayout_12 = QVBoxLayout(self.pagePDF)
-        self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.previewPDF = QFrame(self.pagePDF)
-        self.previewPDF.setObjectName(u"previewPDF")
-        self.previewPDF.setFrameShape(QFrame.Shape.StyledPanel)
-        self.previewPDF.setFrameShadow(QFrame.Shadow.Raised)
-        self.verticalLayout_14 = QVBoxLayout(self.previewPDF)
-        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
-        self.webPreview = QWebEngineView(self.previewPDF)
-        self.webPreview.setObjectName(u"webPreview")
-        self.webPreview.setUrl(QUrl(u"about:blank"))
-
-        self.verticalLayout_14.addWidget(self.webPreview)
-
-
-        self.verticalLayout_12.addWidget(self.previewPDF)
-
-        self.stackedWidget.addWidget(self.pagePDF)
 
         self.horizontalLayout_3.addWidget(self.stackedWidget)
 

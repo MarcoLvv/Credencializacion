@@ -55,7 +55,7 @@ def recolectar_datos_formulario(ui):
 
 
 
-def desconectar_senal(widget, senal, funcion=None):
+def signal_disconnect(widget, signal, funcion=None):
     """
     Desconecta una señal de un widget de forma segura.
 
@@ -66,10 +66,10 @@ def desconectar_senal(widget, senal, funcion=None):
     """
     try:
         if funcion:
-            senal.disconnect(funcion)
+            signal.disconnect(funcion)
         else:
-            senal.disconnect()
-    except (TypeError, RuntimeError):
+            signal.disconnect()
+    except (TypeError, RuntimeError, SystemError):
         pass  # La señal no estaba conectada o ya fue eliminada
 
 

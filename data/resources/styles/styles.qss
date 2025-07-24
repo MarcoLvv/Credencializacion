@@ -40,7 +40,6 @@ QPushButton {
     padding: 8px;
     border-radius: 4px;
     font-weight: bold;
-    transition: background-color 0.3s ease; /* Para suavizar el cambio */
 }
 
 #buttonsBar QPushButton:hover {
@@ -99,19 +98,6 @@ QWidget#viewCaptura{
 }
 
 
-QFrame#previewCredencial{
-    background-color: Transparent;
-}
-QFrame#frameCredencial{
-    background-color: Transparent;
-
-
-}
-
-QFrame#btnCredencial{
-    background-color: Transparent;
-
-}
 QFrame#frameDatosL{
     background-color: #F0F4F8;
     alternate-background-color: #D0E6F5;
@@ -129,11 +115,6 @@ QFrame#frameFotoF{
     color: #1A1A1A;
 
     gridline-color: #B0C4D6;
-
-}
-
-QFrame#frameBtn{
-    background-color: transparent;
 
 }
 

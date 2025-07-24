@@ -10,7 +10,8 @@ from PySide6.QtWidgets import QMessageBox
 from src.controllers.camera_controller import CameraController
 from src.controllers.firma_controller import FirmaController
 from src.controllers.previsualizacion_controller import PrevisualizacionController
-from src.utils.helpers import guardar_imagen_desde_label, recolectar_datos_formulario, guardar_archivo_temporal
+from src.utils.helpers import guardar_imagen_desde_label, recolectar_datos_formulario, guardar_archivo_temporal, \
+    signal_disconnect
 from src.utils.rutas import (
     get_temp_foto_path, get_temp_firma_path, get_firma_path,
     get_foto_path
@@ -30,18 +31,16 @@ class CaptureController(QObject):
         self.firma_ctrl = FirmaController(parent_window=self.ui, label_firma=self.ui.labelFirma)
         self.preview_ctrl = preview_ctrl
 
-        indices = self.camera_ctrl.detectar_camaras_disponibles()
 
         self.modo_edicion = False
         self.credencial_editando = None
 
+        # En tu clase CaptureController:
+        self.guardado_conectado = False
+
         self._conectar_botones()
 
-        # Solo una vez al inicializar
-        indices = self.camera_ctrl.detectar_camaras_disponibles()
-        self.ui.comboBoxCamera.clear()
-        self.ui.comboBoxCamera.addItems([f"Cámara {i}" for i in indices])
-        self.camera_ctrl.indices_camaras = indices
+
 
     def _conectar_botones(self):
         self.ui.btnIniciarFoto.clicked.connect(self.camera_ctrl.manejar_estado_foto)
@@ -49,11 +48,14 @@ class CaptureController(QObject):
         self.ui.btnIniciarFirma.clicked.connect(self.firma_ctrl.manejar_estado_firma)
         self.ui.btnCapturarFirma.setVisible(False)
 
-        try:
-            self.ui.btnGuardarDatos.clicked.disconnect()
-        except (TypeError, RuntimeError):
-            pass
+        if self.guardado_conectado:
+            try:
+                self.ui.btnGuardarDatos.clicked.disconnect(self.guardar_credencial)
+            except Exception:
+                pass
+
         self.ui.btnGuardarDatos.clicked.connect(self.guardar_credencial)
+        self.guardado_conectado = True
 
     def actualizar_db(self, nuevo_db_manager):
         self.db = nuevo_db_manager

@@ -13,7 +13,7 @@ def crear_base_si_no_existe():
     if not db_path.exists():
         print("⚙️ No se encontró la base de datos, creando una nueva...")
         db = DBManager()
-        db.crear_tablas()  # Este método debe asegurarse de crear todas las tablas necesarias
+        db.crear_tablas()  # Este metodo debe asegurarse de crear todas las tablas necesarias
         print(f"✅ Base de datos creada en: {db_path}")
     else:
         print(f"📂 Base de datos ya existente : {db_path}.")
