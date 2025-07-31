@@ -67,12 +67,12 @@ class UsuariosTableModel(QAbstractTableModel):
         self._data = new_data or []
         self.endResetModel()
 
-    def obtener_datos_fila(self, row):
+    def get_row_data(self, row):
         if 0 <= row < len(self._data):
             return self._data[row]
         return None
 
-    def actualizar_fila(self, row):
+    def update_row(self, row):
         if 0 <= row < len(self._data):
             top_left = self.index(row, 0)
             bottom_right = self.index(row, self.columnCount() - 1)

@@ -1,12 +1,9 @@
 from datetime import datetime
-from pathlib import Path
 
-from sqlalchemy import create_engine, func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func
 from src.config.database_config import Base, engine, SessionLocal
 from src.models.credencial_model import TbcUsuarios
 from src.utils.config_manager import get_module_id
-from src.utils.rutas import get_data_db_dir
 
 
 
@@ -55,7 +52,7 @@ class DBManager:
             count = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
             return f"{count + 1 + offset:05d}"
 
-    def generar_folio(self, consecutivo_directo=None):
+    def generate_folio(self, consecutivo_directo=None):
         now = datetime.now()
         year = now.strftime("%Y")
         month = now.strftime("%m")
@@ -81,8 +78,8 @@ class DBManager:
 
 
     def insertar_credencial(self, **datos):
-        folio = self.generar_folio()
-        cred = TbcUsuarios(
+        folio = self.generate_folio()
+        credential = TbcUsuarios(
             FolioId=folio,
             Nombre=datos.get("Nombre", ""),
             Paterno=datos.get("Paterno", ""),
@@ -97,16 +94,17 @@ class DBManager:
             Colonia=datos.get("Colonia", ""),
             CodigoPostal=datos.get("CodigoPostal", ""),
             Municipio=datos.get("Municipio", ""),
-            SeccionElectoral=datos.get("SeccionElectoral", ""),
+            Entidad=datos.get("Entidad", ""),
+            SeccionElectoral=datos.get("SeccionElectoral"),
             Genero=datos.get("Genero", ""),
             Celular=datos.get("Celular", ""),
             Email=datos.get("Email", ""),
-            RutaFoto=datos.get("ruta_foto", ""),
-            RutaFirma=datos.get("ruta_firma", ""),
+            RutaFoto=datos.get("RutaFoto", ""),
+            RutaFirma=datos.get("RutaFirma", ""),
             RutaQR=datos.get("ruta_qr", "")
         )
         with self.Session() as session:
-            session.add(cred)
+            session.add(credential)
             session.commit()
         return folio
 
@@ -167,13 +165,14 @@ class DBManager:
         with self.Session() as session:
             return session.query(TbcUsuarios).filter_by(Nombre=nombre).first()
 
-    def obtener_credencial_por_folio(self, folio_id: str) -> dict:
+    def get_credential_by_folio(self, folio_id: str) -> dict:
         session = self.Session()
         try:
-            usuario = session.query(TbcUsuarios).filter_by(FolioId=folio_id).first()
-            if usuario:
-                return usuario.__dict__
+            user = session.query(TbcUsuarios).filter_by(FolioId=folio_id).first()
+            if user:
+                return user.__dict__
             return None
+
         finally:
             session.close()
 

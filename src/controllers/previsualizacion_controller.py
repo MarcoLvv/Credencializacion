@@ -4,51 +4,52 @@ import tempfile
 import webbrowser
 from pathlib import Path
 
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, Qt
 from PySide6.QtWidgets import QMessageBox, QSizePolicy
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 from src.utils.pdf_utils import generar_pdf_doble_cara
-from src.utils.rutas import get_background_front_side, get_background_back_side, get_layout_QR, get_temp_credencial_sides_paths, get_foto_dir
+from src.utils.rutas import get_background_front_side, get_background_back_side, get_layout_qr, get_temp_credencial_sides_paths, get_foto_dir
 
 
-class PrevisualizacionController:
+class PreviewController:
     def __init__(self, ui):
         print("[DEBUG] PrevisualizacionController inicializado")
         self.ui = ui
-        self.imagen_frontal = None
-        self.imagen_reverso = None
-        self.ruta_pdf_temporal = None
+        self.front_image = None
+        self.reverse_image = None
+        self.temp_pdf_path = None
 
-        self.ui.btnImprimir.clicked.connect(self.mostrar_pdf_en_webview)
+        self.ui.printBtn.clicked.connect(self.show_pdf_browser)
 
-    def mostrar_credencial(self, data):
+    def show_credential(self, data):
+
         # Cargar imágenes de fondo
-        fondo_path = get_background_front_side()
-        fondo_path_posterior = get_background_back_side()
-        fondo_path_qr = get_layout_QR()
+        front_background_path = get_background_front_side()
+        reverse_background_path = get_background_back_side()
+        whatsapp_famc_qr_path = get_layout_qr()
 
-        self.ui.labelFondo.setPixmap(QPixmap(str(fondo_path)))
-        self.ui.labelFondo.setScaledContents(True)
-        self.ui.labelFondoPosterior.setPixmap(QPixmap(str(fondo_path_posterior)))
-        self.ui.labelFondoPosterior.setScaledContents(True)
-        self.ui.labelQrWhatsapp.setPixmap(QPixmap(str(fondo_path_qr)))
-        self.ui.labelQrWhatsapp.setScaledContents(True)
+        self.ui.labelFrontBackgroundCredential.setPixmap(QPixmap(str(front_background_path)))
+        self.ui.labelFrontBackgroundCredential.setScaledContents(True)
+        self.ui.labelReverseBackgroundCredential.setPixmap(QPixmap(str(reverse_background_path)))
+        self.ui.labelReverseBackgroundCredential.setScaledContents(True)
+        self.ui.labelQrWhatsappCredential.setPixmap(QPixmap(str(whatsapp_famc_qr_path)))
+        self.ui.labelQrWhatsappCredential.setScaledContents(True)
 
         # Habilita el ajuste automático del texto
-        self.ui.labelNombreCredencial.setWordWrap(True)
+        self.ui.labelCredentialName.setWordWrap(True)
 
         # Si estás usando layouts, asegúrate que el layout permita crecimiento vertical
-        self.ui.labelNombreCredencial.setSizePolicy(
+        self.ui.labelCredentialName.setSizePolicy(
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Maximum
         )
 
         # Habilita el ajuste automático del texto
-        self.ui.labelDomicilioCredencial.setWordWrap(True)
+        self.ui.labelCredentialAddress.setWordWrap(True)
 
         # Si estás usando layouts, asegúrate que el layout permita crecimiento vertical
-        self.ui.labelDomicilioCredencial.setSizePolicy(
+        self.ui.labelCredentialAddress.setSizePolicy(
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Maximum
         )
@@ -85,37 +86,56 @@ class PrevisualizacionController:
             ruta_foto = data.RutaFoto
             ruta_firma = data.RutaFirma
 
-        nombre_completo = f"{nombre} {paterno} {materno}"
+        complete_name = f"{nombre} {paterno} {materno}"
 
-        self.ui.labelNombreCredencial.setText(nombre_completo)
+        self.ui.labelCredentialName.setText(complete_name)
 
-        Domicilio = f"""{calle} #{numExterior} {numInterior} {manzana} {codigoPostal} {colonia} {municipio}"""
-        self.ui.labelDomicilioCredencial.setText(Domicilio)
+        address = f"""{calle} #{numExterior} {numInterior} {manzana} {codigoPostal} {colonia} {municipio}"""
+        self.ui.labelCredentialAddress.setText(address)
 
-        self.ui.labelCURPCredencial.setText(curp)
-        self.ui.labelFolioCredencial.setText(folio_id)
+        self.ui.labelCredentialCURP.setText(curp)
+        self.ui.labelCredentialFolio.setText(folio_id)
 
+        # Limpia imágenes anteriores
+        self.ui.labelUserPhotoCredencial.clear()
+        self.ui.labelSignatureCredential.clear()
+
+        # Foto de usuario
         if ruta_foto and os.path.exists(ruta_foto):
-            self.ui.labelFotoCredencial.setPixmap(QPixmap(ruta_foto))
-            self.ui.labelFotoCredencial.setScaledContents(True)
+            pixmap = QPixmap(ruta_foto)
+            self.ui.labelUserPhotoCredencial.setPixmap(pixmap.scaled(
+            self.ui.labelUserPhotoCredencial.size(),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        ))
+            #self.ui.labelUserPhotoCredencial.setFixedSize(200, 250)
+        else:
+            self.ui.labelUserPhotoCredencial.setText("Sin foto")
+            self.ui.labelUserPhotoCredencial.setStyleSheet("color: gray; font-style: italic;")
 
+        # Firma del usuario
         if ruta_firma and os.path.exists(ruta_firma):
-            self.ui.labelFirmaCredencial.setPixmap(QPixmap(ruta_firma))
-            self.ui.labelFirmaCredencial.setScaledContents(True)
+            self.ui.labelSignatureCredential.setPixmap(QPixmap(ruta_firma))
+            self.ui.labelSignatureCredential.setScaledContents(True)
+        else:
+            self.ui.labelSignatureCredential.setText("Sin firma")
+            self.ui.labelSignatureCredential.setStyleSheet("color: gray; font-style: italic;")
 
         # Generar imágenes temporales
-        self.generar_imagenes_credencial()
+        self.generate_images_for_credentials()
         # Generar y mostrar PDF en webPreview
         #self.mostrar_pdf_en_webview()
         #Mostrar imagenes en navegador externo
 
         #self.mostrar_pdf_externo()
 
-    def mostrar_pdf_externo(self):
-        if self.ruta_pdf_temporal:
-            webbrowser.open(self.ruta_pdf_temporal)
+    def show_pdf_browser(self):
+        pdf_path = generar_pdf_doble_cara(self.front_image, self.reverse_image)
+        self.temp_pdf_path = Path(pdf_path).resolve().as_uri()
+        if self.temp_pdf_path:
+            webbrowser.open(self.temp_pdf_path)
 
-    def ver_desde_credencial(self, credencial):
+    def view_from_credential(self, credencial):
         data = {
             "Nombre": credencial.Nombre,
             "Paterno": credencial.Paterno,
@@ -123,61 +143,61 @@ class PrevisualizacionController:
             "ruta_foto": credencial.RutaFoto,
             "ruta_firma": credencial.RutaFirma,
         }
-        self.mostrar_credencial(data)
+        self.show_credential(data)
 
-    def generar_imagenes_credencial(self):
+    def generate_images_for_credentials(self):
         try:
-            self.limpiar_temporales()  # Borra archivos antiguos si aplica
+            self.clean_temp()  # Borra archivos antiguos si aplica
 
-            ruta_frontal, ruta_posterior = get_temp_credencial_sides_paths()
+            front_path, reverse_path = get_temp_credencial_sides_paths()
 
             # Captura los pixmaps de los frames
-            pixmap_frontal = self.ui.frameFrontal.grab()
-            pixmap_posterior = self.ui.framePosterior.grab()
+            front_pixmap = self.ui.frontFrameCredential.grab()
+            back_pixmap = self.ui.backFrameCredential.grab()
 
             # Guardar archivos
-            if not pixmap_frontal.save(str(ruta_frontal)):
+            if not front_pixmap.save(str(front_path)):
                 raise Exception("No se pudo guardar imagen frontal.")
-            if not pixmap_posterior.save(str(ruta_posterior)):
+            if not back_pixmap.save(str(reverse_path)):
                 raise Exception("No se pudo guardar imagen posterior.")
 
-            print(f"[OK] Imagen temporal frontal: {ruta_frontal}")
-            print(f"[OK] Imagen temporal posterior: {ruta_posterior}")
+            print(f"[OK] Imagen temporal frontal: {front_path}")
+            print(f"[OK] Imagen temporal posterior: {reverse_path}")
 
-            self.set_imagenes_credencial(str(ruta_frontal), str(ruta_posterior))
+            self.set_credential_images(str(front_path), str(reverse_path))
 
         except Exception as e:
             print(f"[ERROR] No se pudo generar imagen temporal de la credencial: {e}")
-            QMessageBox.critical(self.ui, "Error", f"No se pudo generar la credencial:\n{e}")
+            QMessageBox.critical(self.ui.homeView, "Error", f"No se pudo generar la credencial:\n{e}")
 
-    def guardar_credencial_final(self, persona_id: str):
+    def save_final_credential(self, persona_id: str):
         base_dir = get_foto_dir() / "credenciales"
         base_dir.mkdir(parents=True, exist_ok=True)
 
-        frontal_final = base_dir / f"{persona_id}_frontal.png"
-        posterior_final = base_dir / f"{persona_id}_posterior.png"
+        finished_front = base_dir / f"{persona_id}_frontal.png"
+        finished_back = base_dir / f"{persona_id}_posterior.png"
 
-        ruta_frontal, ruta_posterior = get_temp_credencial_paths()
+        front_path, reverse_path = get_temp_credencial_sides_paths()
 
-        shutil.copy(ruta_frontal, frontal_final)
-        shutil.copy(ruta_posterior, posterior_final)
+        shutil.copy(front_path, finished_front)
+        shutil.copy(reverse_path, finished_back)
 
-        print(f"[✔] Credencial guardada en:\n - {frontal_final}\n - {posterior_final}")
+        print(f"[✔] Credencial guardada en:\n - {finished_front}\n - {finished_back}")
 
     def mostrar_pdf_en_webview(self):
         print("[DEBUG] mostrar_pdf_en_webview llamado")
         try:
-            # if not self.imagen_frontal or not self.imagen_reverso:
+            # if not self.front_image or not self.reverse_image:
             #     raise Exception("No hay imágenes para generar el PDF.")
 
-            pdf_path = generar_pdf_doble_cara(self.imagen_frontal, self.imagen_reverso)
-            self.ruta_pdf_temporal = Path(pdf_path).resolve().as_uri()
+            pdf_path = generar_pdf_doble_cara(self.front_image, self.reverse_image)
+            self.temp_pdf_path = Path(pdf_path).resolve().as_uri()
 
             print(f"[OK] PDF generado correctamente en: {pdf_path}")
-            print(f"[OK] Intentando cargar PDF en visor Web: {self.ruta_pdf_temporal}")
+            print(f"[OK] Intentando cargar PDF en visor Web: {self.temp_pdf_path}")
 
-            if self.ruta_pdf_temporal:
-                webbrowser.open(self.ruta_pdf_temporal)
+            if self.temp_pdf_path:
+                webbrowser.open(self.temp_pdf_path)
 
 
         except Exception as e:
@@ -186,24 +206,26 @@ class PrevisualizacionController:
 
     # def imprimir_credencial(self):
     #     try:
-    #         if not self.imagen_frontal or not self.imagen_reverso:
+    #         if not self.front_image or not self.reverse_image:
     #             raise Exception("No hay imágenes listas para imprimir.")
-    #         generar_pdf_doble_cara(self.imagen_frontal, self.imagen_reverso)
+    #         generar_pdf_doble_cara(self.front_image, self.reverse_image)
     #         QMessageBox.information(None, "Impresión", "Trabajo enviado a Zebra ZC300.")
     #     except Exception as e:
     #         QMessageBox.critical(None, "Error de impresión", str(e))
 
-    def set_imagenes_credencial(self, frontal_path, reverso_path):
-        self.imagen_frontal = frontal_path
-        self.imagen_reverso = reverso_path
+    def set_credential_images(self, frontal_path, reverso_path):
+        self.front_image = frontal_path
+        self.reverse_image = reverso_path
 
-    def limpiar_temporales(self):
-        temp_dir = Path(tempfile.gettempdir()) / "credenciales_temp"
-        for archivo in ["credencial_frontal.png", "credencial_reverso.png"]:
-            ruta = temp_dir / archivo
-            if ruta.exists():
+    def clean_temp(self):
+
+        # Revisar donde se guardan para ver que no interfiera con alguna funcion
+        temp_credential_path = Path(tempfile.gettempdir()) / "credenciales_temp"
+        for credential_side in ["credencial_frontal.png", "credencial_reverso.png"]:
+            temp_credential_side = temp_credential_path / credential_side
+            if temp_credential_side.exists():
                 try:
-                    ruta.unlink()
-                    print(f"[INFO] Archivo temporal eliminado: {ruta}")
+                    temp_credential_side.unlink()
+                    print(f"[INFO] Archivo temporal eliminado: {temp_credential_side}")
                 except Exception as e:
-                    print(f"[WARN] No se pudo eliminar {ruta}: {e}")
+                    print(f"[WARN] No se pudo eliminar {temp_credential_side}: {e}")

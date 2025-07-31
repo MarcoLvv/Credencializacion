@@ -4,7 +4,7 @@ from PySide6.QtGui import QPixmap
 
 import shutil
 
-def guardar_imagen_desde_label(label, path, modo='guardar'):
+def save_image_from_label(label, path, modo='guardar'):
     if modo == 'guardar':
         pixmap = label.pixmap()
         if pixmap:
@@ -14,7 +14,7 @@ def guardar_imagen_desde_label(label, path, modo='guardar'):
         label.setPixmap(pixmap)
         label.setScaledContents(True)
 
-def guardar_archivo_temporal(origen: Path, destino: Path, nombre: str):
+def save_temporary_file(origen: Path, destino: Path, nombre: str):
     if not origen.exists():
         print(f"[ADVERTENCIA] {nombre} temporal no encontrada.")
         return None
@@ -26,7 +26,7 @@ def guardar_archivo_temporal(origen: Path, destino: Path, nombre: str):
     return str(destino)
 
 
-def recolectar_datos_formulario(ui):
+def collect_data_form(ui):
     fecha_qt = ui.fechaNacimiento.date()
     fechaNacimiento = date(fecha_qt.year(), fecha_qt.month(), fecha_qt.day())
 
@@ -46,6 +46,7 @@ def recolectar_datos_formulario(ui):
         "CodigoPostal": ui.codigoPostal.text().strip(),
         "Colonia": ui.colonia.text().strip(),
         "Municipio": ui.municipio.text().strip(),
+        "Entidad": ui.entidad.text().strip(),
         "SeccionElectoral": ui.seccionElectoral.text().strip(),
         "Genero": ui.genero.currentText(),
         "Celular": ui.celular.text().strip(),

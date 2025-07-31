@@ -63,16 +63,14 @@ QPushButton:pressed {
 }
 
 /* === FRAME CONTENEDOR DEL STACKED === */
-QFrame#index {
+QWidget#homeView {
     background-color: #D0E6F5;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
     padding: 16px;
-
-
 }
 
-QFrame#frameIndex {
+QFrame#homeFrame {
     background-color: #D0E6F5;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
@@ -88,7 +86,7 @@ QStackedWidget {
 
 }
 
-QWidget#viewCaptura{
+QWidget#captureView{
     alternate-background-color: #D0E6F5;
     background-color: #F0F4F8;
     color: #000000;
@@ -98,14 +96,14 @@ QWidget#viewCaptura{
 }
 
 
-QFrame#frameDatosL{
-    background-color: #F0F4F8;
-    alternate-background-color: #D0E6F5;
-    color: #000000;
 
+
+#dataWidgetL QLabel {
+    color: #000000;
 }
-QFrame#frameDatosR{
-    background-color: #F0F4F8;
+
+
+#dataWidgetR QLabel{
     color: #000000;
 
 }
@@ -118,12 +116,6 @@ QFrame#frameFotoF{
 
 }
 
-#viewCaptura QLabel{
-    color: #000000;
-}
-#viewCaptura QMessageBox{
-    color: white;
-}
 
 /* === TABLES === */
 QTableView {

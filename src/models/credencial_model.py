@@ -2,7 +2,6 @@ from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, Date, Boolean, inspect
 )
-from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.config.database_config import Base, SessionLocal
@@ -28,13 +27,17 @@ class TbcUsuarios(Base):
     Colonia = Column(String(100))
     CodigoPostal = Column(String(10))
     Municipio = Column(String(100))
-    EntidadId = Column(Integer)
-    Celular = Column(String(20))
+    Entidad = Column(String(20))
+    Celular = Column(String(10))
     Email = Column(String(100))
-    SeccionElectoral = Column(String(50))
+    SeccionElectoral = Column(String(20))
+
+    Responsable = Column(String(50))
+
     RutaFoto = Column(String(255))
     RutaFirma = Column(String(200))
     RutaQR = Column(String(200))
+
     NumImpresion = Column(Integer)
     FechaAlta = Column(Date)
     CredencialImpresa = Column(Boolean, default=False)
@@ -43,18 +46,21 @@ class TbcUsuarios(Base):
     def __repr__(self):
         return f"<Usuario {self.FolioId} - {self.Nombre} {self.Paterno}>"
 
-    def _set_fecha(self, atributo: str, valor):
-        """Convierte una cadena a fecha y la asigna al atributo."""
-        if isinstance(valor, str):
+    def _set_date(self, attribute: str, value):
+        """Converts a string to a date and assigns it to the attribute."""
+        if isinstance(value, str):
             try:
-                valor = datetime.strptime(valor, "%Y-%m-%d").date()
+                value = datetime.strptime(value, "%Y-%m-%d").date()
             except ValueError:
-                print(f"⚠️ Fecha inválida para {atributo}: {valor}")
+                print(f"⚠️ Invalid date for {attribute}: {value}")
                 return
-        setattr(self, atributo, valor)
+        setattr(self, attribute, value)
 
-    def set_FechaNacimiento(self, valor): self._set_fecha("FechaNacimiento", valor)
-    def set_FechaAlta(self, valor): self._set_fecha("FechaAlta", valor)
+    def set_birth_date(self, value):
+        self._set_date("BirthDate", value)
+
+    def set_registration_date(self, value):
+        self._set_date("RegistrationDate", value)
 
 
 # DAO para TbcUsuarios

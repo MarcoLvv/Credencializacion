@@ -4,7 +4,7 @@ import sys
 import os
 import json
 from PySide6.QtWidgets import QApplication, QMessageBox, QDialog
-from src.controllers.main_controller import VistaPrincipal
+from src.controllers.main_controller import MainWindow
 from src.controllers.modulo_dialog import ModuloDialog
 from src.utils.config_manager import CONFIG_PATH, get_module_id
 from src.utils.rutas import get_styles
@@ -29,7 +29,7 @@ def main():
         app.setStyleSheet(style)
 
     # Mostrar ventana principal
-    window = VistaPrincipal()
+    window = MainWindow()
     window.show()
 
     try:

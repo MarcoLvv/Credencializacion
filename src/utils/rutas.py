@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 from tempfile import gettempdir
@@ -108,7 +107,31 @@ def get_background_back_side():
     return get_backgrounds_dir() / "back_side.png"
 
 
-def get_layout_QR():
+def get_layout_qr():
     qr_dir = get_static_dir() / "qr"
     qr_dir.mkdir(parents=True, exist_ok=True)
     return qr_dir / "whatsapp_qr.png"
+
+# def _save_file_from_label( label, file_name, tipo):
+#         """
+#         Guarda la imagen desde un QLabel si existe. Pregunta si desea sobrescribir
+#         en modo edición si el archivo ya existe.
+#         """
+#     if label.pixmap() is None:
+#         return None
+#
+#     path = os.path.join("data", file_name, tipo)
+#
+#     if self.edition_mode and Path(path).exists():
+#         response = QMessageBox.question(
+#             self.mw.captureView,
+#             f"Reemplazar {tipo}",
+#             f"Ya existe una {tipo} para este folio.\n¿Deseas reemplazarla?",
+#             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+#         )
+#         if response != QMessageBox.StandardButton.Yes:
+#             return path
+#
+#     save_image_from_label(label, path)
+#     return path
+

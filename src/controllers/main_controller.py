@@ -1,28 +1,24 @@
 # src/controllers/main_controller.py
-import os
-from pathlib import Path
-
 import pandas as pd
 from datetime import datetime
 
-from PySide6.QtCore import QTimer
-from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog, QInputDialog
-
+from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog
+from sqlalchemy import func
 
 from src.controllers.capture_controller import CaptureController
 from src.controllers.edit_controller import EditController
-from src.controllers.previsualizacion_controller import PrevisualizacionController
+from src.controllers.previsualizacion_controller import PreviewController
 from src.database.db_manager import DBManager
 from src.delegates.action_delegate import ActionDelegate
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
-from src.utils.rutas import get_bd_path, get_data_db_dir, get_data_dir
+from src.utils.rutas import get_bd_path
 from src.views.ventana_principal import Ui_MainWindow
 
 
-def fila_a_usuario(row, db, folio_directo=None):
-    usuario = TbcUsuarios()
-    mapeo_campos = {
+def row_to_user(row, db, folio_directo=None):
+    users = TbcUsuarios()
+    fields_mapping = {
         'NOMBRE': 'Nombre',
         'APELLIDO PATERNO': 'Paterno',
         'APELLIDO MATERNO': 'Materno',
@@ -36,37 +32,38 @@ def fila_a_usuario(row, db, folio_directo=None):
         'FOTOGRAFIA': 'RutaFoto',
         'TELEFONO': 'Celular',
         'CORREO': 'Email',
+        'RESPONSABLE': 'Responsable',
         'CREDENCIAL IMPRESA': 'CredencialImpresa',  # Si lo activas después
         'ENTREGADA': 'Entragada'  # Si lo activas después
     }
 
 
-    for excel_col, attr in mapeo_campos.items():
+    for excel_col, attr in fields_mapping.items():
         if pd.isna(row.get(excel_col)):
-            setattr(usuario, attr, None)
+            setattr(users, attr, None)
         else:
-            valor = row[excel_col]
+            value = row[excel_col]
             if attr in ["FechaNacimiento", "FechaAlta"]:
                 try:
-                    if isinstance(valor, str):
-                        valor = datetime.strptime(valor, "%d/%m/%Y").date()
-                    elif isinstance(valor, pd.Timestamp):
-                        valor = valor.date()
+                    if isinstance(value, str):
+                        value = datetime.strptime(value, "%d/%m/%Y").date()
+                    elif isinstance(value, pd.Timestamp):
+                        value = value.date()
                 except Exception:
-                    valor = None  # Fecha malformada
+                    value = None  # Fecha malformada
 
             elif attr in ["CredencialImpresa", "Entragada"]:
-                valor = str(valor).strip().lower() in ["sí", "si", "1", "true", "x"]
+                value = str(value).strip().lower() in ["sí", "si", "1", "true", "x"]
 
-            setattr(usuario, attr, valor)
+            setattr(users, attr, value)
         pass
 
     # ✅ Generar folio con lógica correcta
-    usuario.FolioId = db.generar_folio(consecutivo_directo=folio_directo)
-    usuario.FechaAlta = datetime.today().date()
-    return usuario
+    users.FolioId = db.generate_folio(consecutivo_directo=folio_directo)
+    users.FechaAlta = datetime.today().date()
+    return users
 
-class VistaPrincipal(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.mw = Ui_MainWindow()
@@ -84,150 +81,147 @@ class VistaPrincipal(QMainWindow):
 
         # Inicializar controladores con DB ya configurada
 
-        self.preview_ctrl = PrevisualizacionController(self.ui)
+        self.preview_ctrl = PreviewController(self.ui)
         self.capture_controller = CaptureController(self.mw, self.ui, self.db, self.preview_ctrl)
         self.edit_ctrl = EditController(self, self.capture_controller)
 
-
         # Crear instancia DBManager con la ruta de la base inicial
-        self.capture_controller.actualizar_db(self.db)
+        #self.capture_controller.update_db(self.db)
 
         # Conexiones de botones
-        self.capture_controller.credencial_actualizada.connect(self.recargar_tabla)
-        self.ui.searchBar.textChanged.connect(self.recargar_tabla)
-        self.ui.btnCapturar.clicked.connect(self.mostrar_formulario_captura)
-        self.ui.btnInicio.clicked.connect(self.mostrar_home)
-        self.ui.btnImportar.clicked.connect(self.importar_excel)
+        self.capture_controller.updated_credential.connect(self.reload_table)
+        self.ui.searchBar.textChanged.connect(self.reload_table)
+        self.ui.captureBtn.clicked.connect(self.show_capture_form)
+        self.ui.homeBtn.clicked.connect(self.view_home)
+        self.ui.importBtn.clicked.connect(self.import_excel)
 
         # Conexión del ComboBox para cambiar base
 
         self.model_db = TbcUsuariosDAO()
-        self.delegate_configurado = False
+        self.delegate_configured = False
 
-        self.recargar_tabla()
-        self.mostrar_home()
+        self.reload_table()
+        self.view_home()
 
 
     def load_table(self):
         """Carga las credenciales y las muestra en la tabla, aplicando filtro si hay texto."""
         search_text = self.ui.searchBar.text().lower()
-        credenciales = self.db.obtener_todas()
+        credentials = self.db.obtener_todas()
 
         if search_text:
-            credenciales = [
-                c for c in credenciales if any(
+            credentials = [
+                c for c in credentials if any(
                     search_text in str(getattr(c, attr, "")).lower()
                     for attr in ["Nombre", "Paterno", "Materno", "CURP", "FolioId"]
                 )
             ]
 
-        model = UsuariosTableModel(credenciales)
-        self.ui.usuariosVista.setModel(model)
+        model = UsuariosTableModel(credentials)
+        self.ui.usersTableView.setModel(model)
 
-        if not self.delegate_configurado:
-            self.action_delegate = ActionDelegate(self.ui.usuariosVista)
-            self.ui.usuariosVista.setItemDelegateForColumn(6, self.action_delegate)
-            self.action_delegate.editarClicked.connect(self.editar_usuario_por_fila)
-            self.action_delegate.verClicked.connect(self.ver_usuario_por_fila)
-            self.delegate_configurado = True
+        if not self.delegate_configured:
+            self.action_delegate = ActionDelegate(self.ui.usersTableView)
+            self.ui.usersTableView.setItemDelegateForColumn(6, self.action_delegate)
+            self.action_delegate.editarClicked.connect(self.edit_user_by_row)
+            self.action_delegate.verClicked.connect(self.show_user_by_row)
+            self.delegate_configured = True
 
-    def mostrar_formulario_captura(self):
+    def show_capture_form(self):
         """Prepara el formulario para una nueva captura."""
-        self.capture_controller.modo_edicion = False
-        self.capture_controller.credencial_editando = None
-        self.capture_controller.limpiar_formulario()
-        self.ui.usuariosVista.clearSelection()
+        self.capture_controller.edition_mode = False
+        self.capture_controller.credential_editing = None
+        self.capture_controller.clear_form()
+        self.ui.usersTableView.clearSelection()
 
         # Reinicia correctamente el estado de la cámara
-        self.capture_controller.camera_ctrl.preparar_estado_captura()
+        self.capture_controller.camera_ctrl.prepare_capture_state()
 
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.captureView)
 
-    def mostrar_home(self):
+    def view_home(self):
         """Muestra la vista de inicio y detiene cualquier cámara activa."""
-        self.capture_controller.camera_ctrl.preparar_estado_captura()
+        self.capture_controller.camera_ctrl.prepare_capture_state()
 
 
-        self._configurar_tabla_usuarios()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewHome)
+        self._configure_user_table()
+        self.ui.stackedWidget.setCurrentWidget(self.ui.homeView)
 
-    def editar_usuario_por_fila(self, fila):
+    def edit_user_by_row(self, row):
         """Carga una credencial para edición."""
-        self.capture_controller.camera_ctrl.preparar_estado_captura()
-        model = self.ui.usuariosVista.model()
-        credencial = model.obtener_datos_fila(fila)
+        self.capture_controller.camera_ctrl.prepare_capture_state()
+        model = self.ui.usersTableView.model()
+        credential = model.get_row_data(row)
 
-        self.edit_ctrl.mostrar_formulario_captura(credencial)
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCaptura)
+        self.edit_ctrl.show_capture_form(credential)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.captureView)
 
-    def ver_usuario_por_fila(self, fila):
+    def show_user_by_row(self, row):
         """Muestra una credencial en modo previsualización."""
-        model = self.ui.usuariosVista.model()
-        credencial = model.obtener_datos_fila(fila)
+        model = self.ui.usersTableView.model()
+        credential = model.get_row_data(row)
         print(model)
-        self.preview_ctrl.mostrar_credencial(credencial)
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
+        self.preview_ctrl.show_credential(credential)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.credentialView)
 
-    def _configurar_tabla_usuarios(self):
+    def _configure_user_table(self):
         """Ajusta el tamaño de columnas de la tabla de usuarios."""
-        header = self.ui.usuariosVista.horizontalHeader()
-        self.ui.usuariosVista.verticalHeader().setVisible(False)
+        header = self.ui.usersTableView.horizontalHeader()
+        self.ui.usersTableView.verticalHeader().setVisible(False)
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         for col in range(1, 6):
             header.setSectionResizeMode(col, QHeaderView.ResizeMode.Stretch)
 
-    def importar_excel(self):
-        ruta, _ = QFileDialog.getOpenFileName(self, "Seleccionar archivo Excel", "",
+    def import_excel(self):
+        excel_path, _ = QFileDialog.getOpenFileName(self, "Seleccionar archivo Excel", "",
                                               "Excel (*.xlsx *.xls);;CSV (*.csv)")
-        if not ruta:
+        if not excel_path:
             return
 
         try:
-            df = pd.read_excel(ruta) if ruta.endswith(".xlsx") else pd.read_csv(ruta)
+            df = pd.read_excel(excel_path) if excel_path.endswith(".xlsx") else pd.read_csv(excel_path)
 
             # Obtener base del consecutivo
-            from sqlalchemy import func
             with self.db.Session() as session:
-                consecutivo_base = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
+                db_consecutive = session.query(func.count(TbcUsuarios.Id)).scalar() or 0
 
-            usuarios = []
+            users = []
             for offset, (_, row) in enumerate(df.iterrows()):
                 try:
-                    folio_consecutivo = consecutivo_base + offset + 1
-                    usuario = fila_a_usuario(row, self.db, folio_consecutivo)
-                    usuarios.append(usuario)
+                    consecutive_folio = db_consecutive + offset + 1
+                    excel_users = row_to_user(row, self.db, consecutive_folio)
+                    users.append(excel_users)
                 except Exception as e:
                     print(f"❌ Error en fila: {e}")
 
-            self.db.insertar_multiples(usuarios)
-            self.recargar_tabla()
+            self.db.insertar_multiples(users)
+            self.reload_table()
 
             QMessageBox.information(self, "Importación completada",
-                                    f"{len(usuarios)} credenciales importadas correctamente.")
+                                    f"{len(users)} credenciales importadas correctamente.")
 
         except Exception as e:
             QMessageBox.critical(self, "Error al importar", str(e))
 
-    def recargar_tabla(self):
+    def reload_table(self):
         self.load_table()
 
-    def cargar_usuarios(self):
-        session = self.db.get_session()
-        usuarios = self.model_db.get_all()
-        modelo = UsuariosTableModel(usuarios)
-        self.ui.usuariosVista.setModel(modelo)
+    def load_users(self):
+        users = self.model_db.get_all()
+        model = UsuariosTableModel(users)
+        self.ui.usersTableView.setModel(model)
 
-    def actualizar_vista(self):
+    def update_view(self):
         if not self.db.Session:
             print("⚠️ No hay sesión activa.")
             return
 
         try:
             dao = TbcUsuariosDAO(self.db.get_session)
-            usuarios = dao.get_all()
-            modelo = UsuariosTableModel(usuarios)
-            self.ui.usuariosVista.setModel(modelo)
-            self.ui.usuariosVista.resizeColumnsToContents()
+            users = dao.get_all()
+            model = UsuariosTableModel(users)
+            self.ui.usersTableView.setModel(model)
+            self.ui.usersTableView.resizeColumnsToContents()
         except Exception as e:
             print(f"⚠️ Error actualizando vista: {e}")
 
