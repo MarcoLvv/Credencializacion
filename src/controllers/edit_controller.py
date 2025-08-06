@@ -47,6 +47,8 @@ class EditController:
         self.capture_ctrl.credential_editing = True
         self.capture_ctrl.credential_editing = credential
 
+
+
         # Llenar campos
         self.ui.nombre.setText(credential.Nombre)
         self.ui.paterno.setText(credential.Paterno)

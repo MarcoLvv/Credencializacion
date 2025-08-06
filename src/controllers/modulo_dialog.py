@@ -29,7 +29,7 @@ class ModuloDialog(QDialog):
 
     def accept(self):
         modulo = self.ui.lineModulo.text().strip().upper()
-        crear_base_si_no_existe()
+        #crear_base_si_no_existe()
         if not re.match(r"^M\d{2}$", modulo):
             QMessageBox.warning(self, "Formato inválido", "El módulo debe tener el formato M00 a M99.")
             return

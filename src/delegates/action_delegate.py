@@ -2,7 +2,9 @@ from PySide6.QtWidgets import QStyledItemDelegate
 from PySide6.QtCore import QRect, QSize, Signal, QEvent
 from PySide6.QtGui import QIcon
 from src.utils.rutas import get_icons_dir
-
+from PySide6.QtWidgets import QStyledItemDelegate
+from PySide6.QtGui import QBrush, QColor
+from PySide6.QtCore import Qt
 
 def _get_icon_positions(option):
     # Tamaño de los íconos
@@ -47,3 +49,13 @@ class ActionDelegate(QStyledItemDelegate):
             elif ver_rect.contains(mouse_pos):
                 self.verClicked.emit(index.row())
         return True
+
+class CheckboxColorDelegate(QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        value = index.data(Qt.ItemDataRole.CheckStateRole)
+        if value == Qt.CheckState.Checked:
+            option.backgroundBrush = QBrush(QColor("#c8f7c5"))  # Verde
+        elif value == Qt.CheckState.Unchecked:
+            option.backgroundBrush = QBrush(QColor("#f7c5c5"))  # Rojo
+
+        super().paint(painter, option, index)

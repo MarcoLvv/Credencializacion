@@ -16,6 +16,11 @@ def get_data_dir():
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
+def get_exportaciones_dir():
+    """Crea y devuelve la carpeta /data/exportaciones"""
+    path = get_data_dir() / "exportaciones"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 # === Carpetas por tipo ===
 def get_styles():
@@ -61,6 +66,9 @@ def get_temp_dir():
 def get_temp_path(nombre_archivo: str):
     """Devuelve la ruta para un archivo temporal dentro de /temp"""
     return get_temp_dir() / nombre_archivo
+
+def get_temp_pdf_path():
+    return str(get_temp_path("temp_pdf.pdf"))
 
 def get_temp_foto_path():
     return get_temp_path("temp_foto.png")

@@ -4,7 +4,7 @@ from sqlalchemy import func
 from src.config.database_config import Base, engine, SessionLocal
 from src.models.credencial_model import TbcUsuarios
 from src.utils.config_manager import get_module_id
-
+from src.utils.data_utils import convert_dates_in_dict
 
 
 class DBManager:
@@ -85,7 +85,7 @@ class DBManager:
             Paterno=datos.get("Paterno", ""),
             Materno=datos.get("Materno", ""),
             CURP=datos.get("CURP", ""),
-            FechaNacimiento=datos.get("fechaNacimiento"),
+            FechaNacimiento=datos.get("FechaNacimiento"),
             Calle=datos.get("Calle", ""),
             Lote=datos.get("Lote", ""),
             Manzana=datos.get("Manzana", ""),
@@ -101,8 +101,9 @@ class DBManager:
             Email=datos.get("Email", ""),
             RutaFoto=datos.get("RutaFoto", ""),
             RutaFirma=datos.get("RutaFirma", ""),
-            RutaQR=datos.get("ruta_qr", "")
+            RutaQR=datos.get("RutaQR", "")
         )
+
         with self.Session() as session:
             session.add(credential)
             session.commit()
@@ -132,15 +133,21 @@ class DBManager:
 
             if isinstance(folio, list):
                 folio = folio[0]  # si es lista, tomamos el primer valor
-            # Ahora folio es un valor plano
+
+            # Convertir las fechas en datos_actualizados antes del update
+            date_fields = ["FechaAlta", "FechaNacimiento"]
+            convert_dates_in_dict(datos_actualizados, date_fields)
+
             cred = session.query(TbcUsuarios).filter_by(FolioId=folio).first()
 
             if not cred:
                 print(f"[ERROR] No se encontró credencial con folio: {folio}")
                 return False
+
             for campo, valor in datos_actualizados.items():
                 if hasattr(cred, campo):
                     setattr(cred, campo, valor)
+
             session.commit()
             return True
 
@@ -179,3 +186,8 @@ class DBManager:
     def obtener_credencial(self):
         with self.Session() as session:
             return session.query(TbcUsuarios)
+
+    def update(self, usuario):
+        with self.Session() as session:
+            session.merge(usuario)
+            session.commit()

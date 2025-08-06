@@ -1,15 +1,15 @@
 # capture_controller.py
-
-
-from PySide6.QtCore import QObject, Signal
+import pandas as pd
+from PySide6.QtCore import QObject, Signal, QDate
 from PySide6.QtWidgets import QMessageBox
 
 from src.controllers.camera_controller import CameraController
 from src.controllers.signature_controller import SignatureController
+from src.utils.data_utils import normalize_credential_data
 
 from src.utils.helpers import (
     collect_data_form,
-    save_temporary_file,
+    save_temporary_file, sanitize_data,
 )
 
 from src.utils.rutas import (
@@ -18,6 +18,15 @@ from src.utils.rutas import (
     get_firma_path,
     get_foto_path,
 )
+def safe_path(path):
+    return "" if path is None or pd.isna(path) else str(path).strip()
+
+def clean_input(text):
+    """Limpia espacios y reemplaza nulos o strings vacíos."""
+
+    if text is None:
+        return ""
+    return str(text).strip()
 
 
 class CaptureController(QObject):
@@ -44,7 +53,6 @@ class CaptureController(QObject):
         self.ui.startPhotoBtn.clicked.connect(self.camera_ctrl.manage_photo_state)
         self.ui.uploadPhotoBtn.clicked.connect(self.camera_ctrl.upload_photo_from_file)
         self.ui.startSignatureBtn.clicked.connect(self.signature_ctrl.manage_signature_state)
-        self.ui.uploadSignatureBtn.setVisible(False)
 
         if self.saved_connected:
             try:
@@ -61,7 +69,7 @@ class CaptureController(QObject):
 
         campos = [
             self.ui.nombre, self.ui.paterno, self.ui.materno, self.ui.curp,
-            self.ui.fechaNacimiento, self.ui.calle, self.ui.lote,
+            self.ui.calle, self.ui.lote,
             self.ui.manzana, self.ui.numExt, self.ui.numInt, self.ui.codigoPostal,
             self.ui.colonia, self.ui.municipio, self.ui.entidad, self.ui.seccionElectoral,
             self.ui.genero, self.ui.celular, self.ui.email
@@ -69,6 +77,7 @@ class CaptureController(QObject):
         for campo in campos:
             campo.clear()
 
+        self.ui.fechaNacimiento.setDate(QDate(2000, 1, 1))  # ejemplo
         self.ui.municipio.setText("Cuajimalpa")
         self.ui.entidad.setText("Ciudad De Mexico")
 
@@ -84,10 +93,14 @@ class CaptureController(QObject):
     def save_credential(self):
         """Guarda una credencial nueva o actualiza una existente."""
         if not self.db:
-            QMessageBox.critical(self.ui, "Error de base de datos", "No se ha establecido conexión con la base de datos.")
+            QMessageBox.critical(self.ui, "Error de base de datos",
+                                 "No se ha establecido conexión con la base de datos.")
             return
 
-        data = collect_data_form(self.ui)
+        raw_data = collect_data_form(self.ui)
+        data = normalize_credential_data(raw_data)  # <--- Sanitiza los datos aquí
+
+        print(type(data["FechaNacimiento"]), data["FechaNacimiento"])
 
         if not data["Nombre"] or not data["CURP"]:
             QMessageBox.warning(self.ui.captureView, "Campos requeridos", "Nombre y CURP son obligatorios.")
@@ -105,8 +118,14 @@ class CaptureController(QObject):
 
     def _save_new_credential(self, data):
         """Genera folio y guarda una nueva credencial."""
+        try:
+            clean_data = normalize_credential_data(data)
+        except Exception as e:
+            QMessageBox.critical(self.mw.captureView, "Error de datos", f"No se pudo procesar la información: {e}")
+            return
+
         folio = self.db.generate_folio()
-        self._save_credential_files_db(folio, data, is_update=False)
+        self._save_credential_files_db(folio, clean_data, is_update=False)
         return folio
 
     def _save_edition_credential(self, data):
@@ -122,23 +141,24 @@ class CaptureController(QObject):
         photo_path = save_temporary_file(get_temp_foto_path(), get_foto_path(folio), "Foto")
         signature_path = save_temporary_file(get_temp_firma_path(), get_firma_path(folio), "Firma")
 
-            
         data.update({
-            "RutaFoto": photo_path,
-            "RutaFirma": signature_path
+            "RutaFoto": safe_path(photo_path),
+            "RutaFirma": safe_path(signature_path)
         })
 
         try:
+            clean_data = normalize_credential_data(data)
             if is_update:
-                self.db.actualizar_credencial(folio, **data)
-                QMessageBox.information(self.mw.captureView, "Actualizado", f"Credencial {folio} editada correctamente.")
+                self.db.actualizar_credencial(folio, **clean_data)
+                QMessageBox.information(self.mw.captureView, "Actualizado",
+                                        f"Credencial {folio} editada correctamente.")
             else:
-                self.db.insertar_credencial(**data)
+                self.db.insertar_credencial(**clean_data)
                 QMessageBox.information(self.mw.captureView, "Guardado", f"Credencial {folio} guardada correctamente.")
             self.updated_credential.emit()
         except Exception as e:
             QMessageBox.critical(self.mw.captureView, "Error", f"No se pudo guardar: {e}")
+            print(e)
 
-        return data
 
 

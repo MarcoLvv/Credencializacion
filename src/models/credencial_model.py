@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import (
     Column, Integer, String, Date, Boolean, inspect
 )
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 
 from src.config.database_config import Base, SessionLocal
 
@@ -13,35 +13,35 @@ class TbcUsuarios(Base):
 
     Id = Column(Integer, primary_key=True, autoincrement=True)
     FolioId = Column(String(25))
-    Nombre = Column(String(100), nullable=False)
-    Paterno = Column(String(100))
-    Materno = Column(String(100))
-    FechaNacimiento = Column(Date)
-    Genero = Column(String(10))
-    CURP = Column(String(20))
-    Calle = Column(String(100))
-    NumExterior = Column(String(10))
-    NumInterior = Column(String(10))
-    Manzana = Column(String(10))
-    Lote = Column(String(10))
-    Colonia = Column(String(100))
-    CodigoPostal = Column(String(10))
-    Municipio = Column(String(100))
-    Entidad = Column(String(20))
-    Celular = Column(String(10))
-    Email = Column(String(100))
-    SeccionElectoral = Column(String(20))
+    Nombre = Column(String(100), nullable=False, default="")
+    Paterno = Column(String(100), nullable=False, default="")
+    Materno = Column(String(100), nullable=False, default="")
+    FechaNacimiento = Column(Date, nullable=False)
+    Genero = Column(String(10), nullable=False, default="")
+    CURP = Column(String(20), nullable=False, default="")
+    Calle = Column(String(100), nullable=False, default="")
+    NumExterior = Column(String(10), nullable=False, default="")
+    NumInterior = Column(String(10), nullable=False, default="")
+    Manzana = Column(String(10), nullable=False, default="")
+    Lote = Column(String(10), nullable=False, default="")
+    Colonia = Column(String(100), nullable=False, default="")
+    CodigoPostal = Column(String(10), nullable=False, default="")
+    Municipio = Column(String(100), nullable=False, default="")
+    Entidad = Column(String(20), nullable=False, default="")
+    Celular = Column(String(10), nullable=False, default="")
+    Email = Column(String(100), nullable=False, default="")
+    SeccionElectoral = Column(String(20), nullable=False, default="")
 
-    Responsable = Column(String(50))
+    Responsable = Column(String(50), nullable=False, default="")
 
-    RutaFoto = Column(String(255))
-    RutaFirma = Column(String(200))
-    RutaQR = Column(String(200))
+    RutaFoto = Column(String(255), nullable=False, default="")
+    RutaFirma = Column(String(200), nullable=False, default="")
+    RutaQR = Column(String(200), nullable=False, default="")
 
     NumImpresion = Column(Integer)
     FechaAlta = Column(Date)
-    CredencialImpresa = Column(Boolean, default=False)
-    Entregada = Column(Boolean, default=False)
+    VecesImpresa = Column(Integer, default=0)
+   # Entregada = Column(Boolean, default=False)
 
     def __repr__(self):
         return f"<Usuario {self.FolioId} - {self.Nombre} {self.Paterno}>"
@@ -90,7 +90,26 @@ class TbcUsuariosDAO:
             print(f"⚠️ Error al filtrar usuarios: {e}")
             return []
 
-
+    def update(self, usuario ):
+        """Actualiza un registro de TbcUsuarios en la base de datos."""
+        session = self.session_factory()
+        try:
+            existing = session.query(TbcUsuarios).filter_by(Id=usuario.Id).one()
+            for attr in vars(usuario):
+                if attr.startswith("_"):
+                    continue
+                if hasattr(existing, attr):
+                    setattr(existing, attr, getattr(usuario, attr))
+            session.commit()
+            return True
+        except NoResultFound:
+            print(f"[ERROR] Usuario con ID {usuario.Id} no encontrado.")
+        except SQLAlchemyError as e:
+            print(f"[ERROR] Error al actualizar usuario: {e}")
+            session.rollback()
+        finally:
+            session.close()
+        return False
 
 
 # 🔍 Funciones de validación para estructura de base de datos
