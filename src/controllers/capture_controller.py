@@ -9,7 +9,7 @@ from src.utils.data_utils import normalize_credential_data
 
 from src.utils.helpers import (
     collect_data_form,
-    save_temporary_file, sanitize_data, set_svg_icon,
+    save_temporary_file
 )
 
 from src.utils.rutas import (
@@ -45,15 +45,12 @@ class CaptureController(QObject):
 
     def _connect_buttons(self):
         """Conecta los botones del formulario con sus respectivos controladores."""
-        set_svg_icon(self.ui.startPhotoBtn, "camera.svg", QSize(24, 24))
 
         self.ui.startPhotoBtn.clicked.connect(self.camera_ctrl.manage_photo_state)
 
-        set_svg_icon(self.ui.uploadPhotoBtn, "camera-search.svg", QSize(24, 24))
         self.ui.uploadPhotoBtn.clicked.connect(self.camera_ctrl.upload_photo_from_file)
 
 
-        set_svg_icon(self.ui.startSignatureBtn, "writing.svg", QSize(24, 24))
         self.ui.startSignatureBtn.clicked.connect(self.signature_ctrl.manage_signature_state)
 
         if self.saved_connected:
@@ -62,7 +59,6 @@ class CaptureController(QObject):
             except Exception:
                 pass
 
-        set_svg_icon(self.ui.saveDataBtn, "folder-check.svg", QSize(24, 24))
         self.ui.saveDataBtn.clicked.connect(self.save_credential)
 
         self.saved_connected = True

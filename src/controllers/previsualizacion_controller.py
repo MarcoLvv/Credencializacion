@@ -20,8 +20,8 @@ class PreviewController:
 
     def show_credential(self, data):
         # Cargar fondos y QR
-        front_background = get_background_front_side("front_side")
-        back_background = get_background_back_side("back_side")
+        front_background = get_background_front_side("front_sidev2")
+        back_background = get_background_back_side("back_sidev2")
         qr_path = get_layout_qr()
 
         show_scaled_preview(str(front_background), self.ui.labelFrontBackgroundCredential)

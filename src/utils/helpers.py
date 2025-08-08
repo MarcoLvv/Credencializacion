@@ -40,33 +40,6 @@ def setup_logger():
 
 logger = setup_logger()
 
-
-# Funcion para colocar iconos.
-def set_svg_icon(button: QPushButton, icon_name: str, size: QSize):
-    svg_path = get_icons_path(icon_name)
-
-    if not svg_path.exists():
-        print(f"[WARNING] Icono no encontrado: {svg_path}")
-        return
-
-    renderer = QSvgRenderer(str(svg_path))
-    pixmap = QPixmap(size)
-    pixmap.fill(Qt.transparent)
-
-    painter = QPainter(pixmap)
-    renderer.render(painter)
-    painter.end()
-
-    # Crear pixmap blanco usando CompositionMode_SourceIn
-    painter = QPainter(pixmap)
-    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-    painter.fillRect(pixmap.rect(), QColor('white'))
-    painter.end()
-
-    button.setIcon(QIcon(pixmap))
-    button.setIconSize(size)
-
-
 def save_image_from_label(label, path, modo='guardar'):
     if modo == 'guardar':
         pixmap = label.pixmap()

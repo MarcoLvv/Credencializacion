@@ -22,7 +22,7 @@ from src.database.db_manager import DBManager
 from src.delegates.action_delegate import ActionDelegate, CheckboxColorDelegate
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
-from src.utils.helpers import sanitize_data, clean_empty_strings, set_svg_icon
+from src.utils.helpers import sanitize_data, clean_empty_strings
 from src.utils.icons_utils import set_svg_icons
 from src.utils.rutas import get_bd_path, get_icons_path, get_exportaciones_dir, get_foto_dir
 
@@ -128,19 +128,15 @@ class MainWindow(QMainWindow):
         self.capture_controller.updated_credential.connect(self.reload_table)
         self.ui.searchBar.textChanged.connect(self.reload_table)
 
-        set_svg_icon(self.ui.captureBtn, "capture.svg", QSize(24, 24))
         self.ui.captureBtn.clicked.connect(self.show_capture_form)
 
-        set_svg_icon(self.ui.homeBtn, "home.svg", QSize(24, 24))
         self.ui.homeBtn.clicked.connect(self.view_home)
 
-        set_svg_icon(self.ui.importBtn, "database-import.svg", QSize(24, 24))
         self.ui.importBtn.clicked.connect(self.import_excel)
 
 
 
         self.model_db = TbcUsuariosDAO()
-        set_svg_icon(self.ui.exportBtn, "database-export.svg", QSize(24, 24))
         self.ui.exportBtn.clicked.connect(self.exportar_base_y_fotos)
 
         #Prueba para poner todos los iconos
