@@ -29,13 +29,14 @@ def generar_pdf_doble_cara(frente_path, reverso_path):
     # Página 1: Frente
     c.setFillColorRGB(1, 1, 1)
     c.rect(0, 0, CR80_SIZE[0], CR80_SIZE[1], stroke=0, fill=1)
-    c.drawImage(ImageReader(frente_path), 0, 0, width=CR80_SIZE[0], height=CR80_SIZE[1], preserveAspectRatio=True, mask='auto')
+
+    c.drawImage(ImageReader(frente_path), 0, 0, width=CR80_SIZE[0], height=CR80_SIZE[1], preserveAspectRatio=False, mask='auto')
     c.showPage()
 
     # Página 2: Reverso
     c.setFillColorRGB(1, 1, 1)
     c.rect(0, 0, CR80_SIZE[0], CR80_SIZE[1], stroke=0, fill=1)
-    c.drawImage(ImageReader(reverso_path), 0, 0, width=CR80_SIZE[0], height=CR80_SIZE[1], preserveAspectRatio=True, mask='auto')
+    c.drawImage(ImageReader(reverso_path), 0, 0, width=CR80_SIZE[0], height=CR80_SIZE[1], preserveAspectRatio=False, mask='auto')
     c.showPage()
 
     c.save()

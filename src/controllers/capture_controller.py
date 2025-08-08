@@ -1,6 +1,6 @@
 # capture_controller.py
 import pandas as pd
-from PySide6.QtCore import QObject, Signal, QDate
+from PySide6.QtCore import QObject, Signal, QDate, QSize
 from PySide6.QtWidgets import QMessageBox
 
 from src.controllers.camera_controller import CameraController
@@ -9,7 +9,7 @@ from src.utils.data_utils import normalize_credential_data
 
 from src.utils.helpers import (
     collect_data_form,
-    save_temporary_file, sanitize_data,
+    save_temporary_file, sanitize_data, set_svg_icon,
 )
 
 from src.utils.rutas import (
@@ -20,13 +20,6 @@ from src.utils.rutas import (
 )
 def safe_path(path):
     return "" if path is None or pd.isna(path) else str(path).strip()
-
-def clean_input(text):
-    """Limpia espacios y reemplaza nulos o strings vacíos."""
-
-    if text is None:
-        return ""
-    return str(text).strip()
 
 
 class CaptureController(QObject):
@@ -39,8 +32,10 @@ class CaptureController(QObject):
         self.db = db_manager
         self.preview_ctrl = preview_ctrl
 
-        self.camera_ctrl = CameraController(self.ui.labelPhoto, self.ui)
+        self.camera_ctrl = CameraController(self.ui, self.ui.labelPhoto )
         self.signature_ctrl = SignatureController(self.ui, self.ui.labelSignature)
+
+
 
         self.edition_mode = False
         self.credential_editing = None
@@ -50,8 +45,15 @@ class CaptureController(QObject):
 
     def _connect_buttons(self):
         """Conecta los botones del formulario con sus respectivos controladores."""
+        set_svg_icon(self.ui.startPhotoBtn, "camera.svg", QSize(24, 24))
+
         self.ui.startPhotoBtn.clicked.connect(self.camera_ctrl.manage_photo_state)
+
+        set_svg_icon(self.ui.uploadPhotoBtn, "camera-search.svg", QSize(24, 24))
         self.ui.uploadPhotoBtn.clicked.connect(self.camera_ctrl.upload_photo_from_file)
+
+
+        set_svg_icon(self.ui.startSignatureBtn, "writing.svg", QSize(24, 24))
         self.ui.startSignatureBtn.clicked.connect(self.signature_ctrl.manage_signature_state)
 
         if self.saved_connected:
@@ -60,7 +62,9 @@ class CaptureController(QObject):
             except Exception:
                 pass
 
+        set_svg_icon(self.ui.saveDataBtn, "folder-check.svg", QSize(24, 24))
         self.ui.saveDataBtn.clicked.connect(self.save_credential)
+
         self.saved_connected = True
 
     def clear_form(self):

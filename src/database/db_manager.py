@@ -67,16 +67,6 @@ class DBManager:
 
         return f"FAMC-{year}{month}-{modulo}-{consecutivo:05d}"
 
-    # def generar_folio(self):
-    #     now = datetime.now()
-    #     año = now.strftime("%Y")
-    #     mes = now.strftime("%m")
-    #     modulo = get_module_id()
-    #     consecutivo = self.get_next_consecutive()
-    #    return f"FAMC-{año}{mes}-{modulo}-{consecutivo}"
-
-
-
     def insertar_credencial(self, **datos):
         folio = self.generate_folio()
         credential = TbcUsuarios(

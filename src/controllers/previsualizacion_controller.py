@@ -20,16 +20,13 @@ class PreviewController:
 
     def show_credential(self, data):
         # Cargar fondos y QR
-        front_background = get_background_front_side()
-        back_background = get_background_back_side()
+        front_background = get_background_front_side("front_side")
+        back_background = get_background_back_side("back_side")
         qr_path = get_layout_qr()
 
-        show_scaled_preview(front_background, self.ui.labelFrontBackgroundCredential)
-        self.ui.labelReverseBackgroundCredential.setPixmap(QPixmap(str(back_background)))
-        self.ui.labelReverseBackgroundCredential.setScaledContents(True)
-
-        self.ui.labelQrWhatsappCredential.setPixmap(QPixmap(str(qr_path)))
-        self.ui.labelQrWhatsappCredential.setScaledContents(True)
+        show_scaled_preview(str(front_background), self.ui.labelFrontBackgroundCredential)
+        show_scaled_preview(str(back_background), self.ui.labelReverseBackgroundCredential)
+        show_scaled_preview(str(qr_path), self.ui.labelQrWhatsappCredential, scaled=True)
 
         # Ajustar etiquetas de texto
         for label in [self.ui.labelCredentialName, self.ui.labelCredentialAddress]:
@@ -70,8 +67,7 @@ class PreviewController:
         # Firma
         ruta_firma = get("RutaFirma", "")
         if ruta_firma and os.path.exists(ruta_firma):
-            self.ui.labelSignatureCredential.setPixmap(QPixmap(ruta_firma))
-            self.ui.labelSignatureCredential.setScaledContents(False)
+            show_scaled_preview(ruta_firma, self.ui.labelSignatureCredential)
         else:
             self.ui.labelSignatureCredential.clear()
             self.ui.labelSignatureCredential.setText("Sin firma")

@@ -3,19 +3,25 @@ from pathlib import Path
 from tempfile import gettempdir
 
 
+#Metodo para obtener la carpeta base
 def get_base_dir():
     """Devuelve la carpeta base (modo ejecutable o desarrollo)."""
     if getattr(sys, 'frozen', False):
         return Path(sys.executable).parent
     return Path.cwd()
 
-
+#Metodo para obtener la carpeta data
 def get_data_dir():
     """Crea y devuelve la carpeta /data base del sistema."""
     data_dir = get_base_dir() / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir
 
+#Metodo para obtener la ruta a los algoritmos Haar para la deteccion de rostros
+def heearcascade_face_path():
+    return get_data_dir() / "haarcascade"
+
+#Metodo para obtener la ruta a las exportaciones
 def get_exportaciones_dir():
     """Crea y devuelve la carpeta /data/exportaciones"""
     path = get_data_dir() / "exportaciones"
@@ -23,39 +29,46 @@ def get_exportaciones_dir():
     return path
 
 # === Carpetas por tipo ===
+#Metodo para obtener ruta a estilos
 def get_styles():
     return get_data_dir() /"resources" / "styles" / "styles.qss"
 
+#Metodo para obtener ruta a la carpeta de las bases de datos
 def get_data_db_dir():
     path = get_data_dir() / "bases"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+#Metodo para obtener ruta a la carpeta de excel
 def get_excel_dir():
     path = get_data_dir() / "excel"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+#Metodo para obtener ruta a los archivos estaticos
 def get_static_dir():
     path = get_data_dir() / "static"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
-def get_icons_dir():
-    path = get_data_dir() / "icons"
-    path.mkdir(parents=True, exist_ok=True)
-    return path
+#Metodo para obtener ruta de los iconos
+def get_icons_path(nombre_icono: str) -> Path:
+    """Devuelve la ruta absoluta de un icono dentro de /data/icons."""
+    return get_data_dir() / "icons" / nombre_icono
 
+#Metodo para obtener ruta a la carpeta de fotos.
 def get_foto_dir():
     path = get_data_dir() / "fotos"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+#Metodo para obtener ruta a la carpeta de firmas
 def get_firma_dir():
     path = get_data_dir() / "firmas"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+#Metodo para obtener ruta a la carpeta de temporales
 def get_temp_dir():
     path = get_data_dir() / "temp"
     path.mkdir(parents=True, exist_ok=True)
@@ -108,38 +121,16 @@ def get_backgrounds_dir():
     path.mkdir(parents=True, exist_ok=True)
     return path
 
-def get_background_front_side():
-    return get_backgrounds_dir() / "front_side.png"
+def get_background_front_side(front_side_background_path : str) -> Path:
+    return get_backgrounds_dir() / f"{front_side_background_path}.png"
 
-def get_background_back_side():
-    return get_backgrounds_dir() / "back_side.png"
+def get_background_back_side(back_side_background_path : str) -> Path :
+    return get_backgrounds_dir() / f"{back_side_background_path}.png"
 
 
 def get_layout_qr():
     qr_dir = get_static_dir() / "qr"
     qr_dir.mkdir(parents=True, exist_ok=True)
     return qr_dir / "whatsapp_qr.png"
-
-# def _save_file_from_label( label, file_name, tipo):
-#         """
-#         Guarda la imagen desde un QLabel si existe. Pregunta si desea sobrescribir
-#         en modo edición si el archivo ya existe.
-#         """
-#     if label.pixmap() is None:
-#         return None
-#
-#     path = os.path.join("data", file_name, tipo)
-#
-#     if self.edition_mode and Path(path).exists():
-#         response = QMessageBox.question(
-#             self.mw.captureView,
-#             f"Reemplazar {tipo}",
-#             f"Ya existe una {tipo} para este folio.\n¿Deseas reemplazarla?",
-#             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-#         )
-#         if response != QMessageBox.StandardButton.Yes:
-#             return path
-#
-#     save_image_from_label(label, path)
-#     return path
+0
 

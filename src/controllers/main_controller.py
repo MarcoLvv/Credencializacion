@@ -1,15 +1,18 @@
 # src/controllers/main_controller.py
 import csv
+import logging
 import shutil
 from pathlib import Path
 
 import pandas as pd
 from datetime import datetime
 
-from PySide6.QtGui import QPixmap, Qt, QPainter
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap, Qt, QPainter, QIcon
+from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog, QAbstractItemView, QTableView
 from sqlalchemy import func
+
+from sqlalchemy.inspection import inspect
 
 from src.controllers.capture_controller import CaptureController
 from src.controllers.edit_controller import EditController
@@ -19,8 +22,9 @@ from src.database.db_manager import DBManager
 from src.delegates.action_delegate import ActionDelegate, CheckboxColorDelegate
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
-from src.utils.helpers import sanitize_data, clean_empty_strings
-from src.utils.rutas import get_bd_path, get_icons_dir, get_exportaciones_dir, get_foto_dir
+from src.utils.helpers import sanitize_data, clean_empty_strings, set_svg_icon
+from src.utils.icons_utils import set_svg_icons
+from src.utils.rutas import get_bd_path, get_icons_path, get_exportaciones_dir, get_foto_dir
 
 from src.views.ventana_principal import Ui_MainWindow
 
@@ -106,6 +110,7 @@ class MainWindow(QMainWindow):
             return
 
         self.db = DBManager()
+
         crear_base_si_no_existe()
 
         # Cargar logo
@@ -116,17 +121,31 @@ class MainWindow(QMainWindow):
         self.capture_controller = CaptureController(self.mw, self.ui, self.db, self.preview_ctrl)
         self.edit_ctrl = EditController(self, self.capture_controller)
 
+        # DAO y delegados
+        self.delegate_configured = False
+
         # Conexiones principales
         self.capture_controller.updated_credential.connect(self.reload_table)
         self.ui.searchBar.textChanged.connect(self.reload_table)
-        self.ui.captureBtn.clicked.connect(self.show_capture_form)
-        self.ui.homeBtn.clicked.connect(self.view_home)
-        self.ui.importBtn.clicked.connect(self.import_excel)
-        self.ui.exportBtn.clicked.connect(self.exportar_datos_y_fotos)
 
-        # DAO y delegados
+        set_svg_icon(self.ui.captureBtn, "capture.svg", QSize(24, 24))
+        self.ui.captureBtn.clicked.connect(self.show_capture_form)
+
+        set_svg_icon(self.ui.homeBtn, "home.svg", QSize(24, 24))
+        self.ui.homeBtn.clicked.connect(self.view_home)
+
+        set_svg_icon(self.ui.importBtn, "database-import.svg", QSize(24, 24))
+        self.ui.importBtn.clicked.connect(self.import_excel)
+
+
+
         self.model_db = TbcUsuariosDAO()
-        self.delegate_configured = False
+        set_svg_icon(self.ui.exportBtn, "database-export.svg", QSize(24, 24))
+        self.ui.exportBtn.clicked.connect(self.exportar_base_y_fotos)
+
+        #Prueba para poner todos los iconos
+        self.set_icons = set_svg_icons(self.ui)
+
 
         # Cargar vista inicial
         self.reload_table()
@@ -134,10 +153,16 @@ class MainWindow(QMainWindow):
 
     def _cargar_logo(self):
         """Carga y ajusta el logo en el QLabel correspondiente."""
-        logo_path = get_icons_dir() / "Logo_Famc.png"
+        logo_path = get_icons_path("Logo_Famc.png")
         if not logo_path.exists():
             print("[⚠️] Logo no encontrado:", logo_path)
             return
+        # Establecer el ícono de la ventana principal
+        icono = QIcon(str(logo_path))  # Cambia la ruta al archivo de tu ícono
+        self.setWindowIcon(icono)
+
+        # El resto de tu configuración de la ventana (título, tamaño, etc.)
+        self.setWindowTitle("Sistema Familia Cuajimalpa")
 
         pixmap = QPixmap(logo_path)
         label = self.ui.labelSistemaCuajimalpa
@@ -200,13 +225,14 @@ class MainWindow(QMainWindow):
         self.ui.usersTableView.clearSelection()
 
         # Reinicia correctamente el estado de la cámara
-        self.capture_controller.camera_ctrl.prepare_capture_state()
-
+        self.capture_controller.camera_ctrl.prepare_photo_state()
+        #self.capture_controller.signature_ctrl.prepare_signature_state()
         self.ui.stackedWidget.setCurrentWidget(self.ui.captureView)
 
     def view_home(self):
         """Muestra la vista de inicio y detiene cualquier cámara activa."""
-        self.capture_controller.camera_ctrl.prepare_capture_state()
+        self.capture_controller.camera_ctrl.prepare_photo_state()
+        #self.capture_controller.signature_ctrl.prepare_signature_state()
 
 
         self._configure_user_table()
@@ -214,7 +240,9 @@ class MainWindow(QMainWindow):
 
     def edit_user_by_row(self, row):
         """Carga una credencial para edición."""
-        self.capture_controller.camera_ctrl.prepare_capture_state()
+        self.capture_controller.camera_ctrl.prepare_photo_state()
+       # self.capture_controller.signature_ctrl.prepare_signature_state()
+
         model = self.ui.usersTableView.model()
         credential = model.get_row_data(row)
 
@@ -279,75 +307,47 @@ class MainWindow(QMainWindow):
     def reload_table(self):
         self.load_table()
 
-    def load_users(self):
-        users = self.model_db.get_all()
-        model = UsuariosTableModel(users, self.model_db)
-        self.ui.usersTableView.setModel(model)
+    def exportar_base_y_fotos(self):
+        model_dao = self.model_db
 
-    def update_view(self):
-        if not self.db.Session:
-            print("⚠️ No hay sesión activa.")
+        export_dir = get_exportaciones_dir()
+        export_csv_path = export_dir / "base_exportada.csv"
+        export_fotos_dir = export_dir / "fotos"
+
+        export_dir.mkdir(parents=True, exist_ok=True)
+        export_fotos_dir.mkdir(parents=True, exist_ok=True)
+
+        # Obtener todos los usuarios
+        usuarios = model_dao.get_all()
+        if not usuarios:
+            print("[Exportación] No hay usuarios en la base de datos.")
+            QMessageBox.critical(self, "Error al importar", "[Exportación] No hay usuarios en la base de datos.")
             return
 
-        try:
-            dao = TbcUsuariosDAO(self.db.get_session)
-            users = dao.get_all()
-            model = UsuariosTableModel(users)
-            self.ui.usersTableView.setModel(model)
-            self.ui.usersTableView.resizeColumnsToContents()
-            # O fijar el ancho de la columna "Entregada" (ej. columna 6)
-            self.ui.usersTableView.setColumnWidth(6, 60)  # Ajusta según tu diseño
-        except Exception as e:
-            print(f"⚠️ Error actualizando vista: {e}")
+        # Obtener nombres de columnas del modelo automáticamente
+        columnas = [col.name for col in inspect(TbcUsuarios).columns]
 
-    def exportar_datos_y_fotos(self):
-        """Exporta los datos y fotos de la base a la carpeta /data/exportaciones."""
-        try:
-            nombre_base = Path(self.db.ruta_db).stem if hasattr(self.db, "ruta_db") else "FamcDB"
-            fecha_actual = datetime.now().strftime("%Y%m%d_%H%M%S")
-            carpeta_exportacion = get_exportaciones_dir() / f"{nombre_base}_{fecha_actual}"
-            carpeta_exportacion.mkdir(parents=True, exist_ok=True)
-
-            # Ruta CSV final
-            ruta_csv = carpeta_exportacion / f"{nombre_base}.csv"
-            usuarios = self.db.obtener_todas()
-
-            if not usuarios:
-                QMessageBox.warning(self, "Sin datos", "No hay usuarios registrados para exportar.")
-                return
-
-            # Escribir CSV
-            with open(ruta_csv, mode='w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                encabezados = list(usuarios[0].__dict__.keys())
-                encabezados.remove('_sa_instance_state')  # Excluir metadato de SQLAlchemy
-                writer.writerow(encabezados)
-
-                for u in usuarios:
-                    datos = [getattr(u, campo, "") for campo in encabezados]
-                    writer.writerow(datos)
-
-            # Copiar fotos
-            ruta_fotos = get_foto_dir()
-            carpeta_fotos = carpeta_exportacion / "fotos"
-            carpeta_fotos.mkdir(exist_ok=True)
+        with open(export_csv_path, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(columnas)
 
             for u in usuarios:
+                datos = [getattr(u, col, "") for col in columnas]
+                writer.writerow(datos)
+
+                # Copiar la foto si existe
                 if u.RutaFoto:
-                    origen = ruta_fotos / u.RutaFoto
-                    destino = carpeta_fotos / u.RutaFoto
-                    if origen.exists():
-                        shutil.copy(origen, destino)
+                    origen = Path(u.RutaFoto)
+                    destino = export_fotos_dir / origen.name
 
-            QMessageBox.information(
-                self,
-                "Exportación completada",
-                f"Se exportaron los datos y fotos correctamente a:\n\n{carpeta_exportacion}"
-            )
+                    try:
+                        if origen.exists():
+                            shutil.copyfile(origen, destino)
+                            print(f"[Exportación] Foto exportada: {destino.name}")
+                    except Exception as e:
+                        print(f"[Exportación] Error al copiar la foto {origen.name}: {e}")
 
-        except Exception as e:
-            QMessageBox.critical(self, "Error al exportar", str(e))
+        QMessageBox.information(self, "Base exportada correctamente a",f" {export_csv_path}.")
 
-
-
+        QMessageBox.information(self, "Fotos exportadas a",f" {export_fotos_dir}.")
 

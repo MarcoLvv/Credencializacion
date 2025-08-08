@@ -15,26 +15,6 @@ class EditController:
         self.db = DBManager()
         self.capture_ctrl = capture_controller  # ✅ Reutiliza el que ya tiene estado y conexión real
 
-    def _edit_user(self, index):
-        """Cuando se hace doble clic sobre una fila."""
-        row = index.row()
-        model = self.ui.usersTableView.model()
-        credential = model.get_filter(row)
-
-        self.show_capture_form(credential)
-
-    def _edit_selected(self):
-        """Cuando se hace clic en el botón 'Editar'."""
-        index = self.ui.usersTableView.currentIndex()
-        if not index.isValid():
-            QMessageBox.warning(self.ui.viewCaptura, "Seleccionar usuario", "Selecciona una fila para editar.")
-            return
-
-        row = index.row()
-        model = self.ui.usuariosVista.model()
-        credential = model.obtener_datos_fila(row)
-
-        self.show_capture_form(credential)
 
     def show_capture_form(self, credential):
         self.load_for_editing(credential)  # ✅ Esto ya limpia y carga
@@ -84,6 +64,6 @@ class EditController:
 
         # Firma
         if credential.RutaFirma and Path(credential.RutaFirma).exists():
-            save_image_from_label(self.ui.labelFirma, credential.RutaFirma, modo='cargar')
+            save_image_from_label(self.ui.labelSignature, credential.RutaFirma, modo='cargar')
             copyfile(credential.RutaFirma, get_temp_firma_path())
 

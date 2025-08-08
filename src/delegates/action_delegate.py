@@ -1,14 +1,14 @@
 from PySide6.QtWidgets import QStyledItemDelegate
 from PySide6.QtCore import QRect, QSize, Signal, QEvent
 from PySide6.QtGui import QIcon
-from src.utils.rutas import get_icons_dir
+from src.utils.rutas import get_icons_path
 from PySide6.QtWidgets import QStyledItemDelegate
 from PySide6.QtGui import QBrush, QColor
 from PySide6.QtCore import Qt
 
 def _get_icon_positions(option):
     # Tamaño de los íconos
-    icon_size = QSize(20, 20)
+    icon_size = QSize(24, 24)
     # Espacio entre íconos
     spacing = 10
 
@@ -28,8 +28,8 @@ class ActionDelegate(QStyledItemDelegate):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        edit_icon_path = get_icons_dir() / "edit.png"
-        view_icon_path = get_icons_dir() / "view.png"
+        edit_icon_path = get_icons_path("edit")
+        view_icon_path = get_icons_path("view")
         self.editar_icon = QIcon(str(edit_icon_path))  # ✔️ QIcon desde la ruta
         self.ver_icon = QIcon(str(view_icon_path))
 

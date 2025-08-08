@@ -6,17 +6,18 @@ import logging
 from pathlib import Path
 
 from PySide6.QtCore import QSize, QPoint
-from PySide6.QtWidgets import QMessageBox, QWidget
+from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import QMessageBox, QWidget, QPushButton
 from sqlalchemy import String
 from sqlalchemy.inspection import inspect
 
 import pandas as pd
-from PySide6.QtGui import QPixmap, Qt, QImage, QPainter, QRegion
+from PySide6.QtGui import QPixmap, Qt, QImage, QPainter, QRegion, QIcon, QColor
 
 import shutil
 
 from src.utils.pdf_utils import generar_pdf_doble_cara
-from src.utils.rutas import get_data_dir
+from src.utils.rutas import get_data_dir, get_icons_path
 
 
 def setup_logger():
@@ -38,6 +39,33 @@ def setup_logger():
 
 
 logger = setup_logger()
+
+
+# Funcion para colocar iconos.
+def set_svg_icon(button: QPushButton, icon_name: str, size: QSize):
+    svg_path = get_icons_path(icon_name)
+
+    if not svg_path.exists():
+        print(f"[WARNING] Icono no encontrado: {svg_path}")
+        return
+
+    renderer = QSvgRenderer(str(svg_path))
+    pixmap = QPixmap(size)
+    pixmap.fill(Qt.transparent)
+
+    painter = QPainter(pixmap)
+    renderer.render(painter)
+    painter.end()
+
+    # Crear pixmap blanco usando CompositionMode_SourceIn
+    painter = QPainter(pixmap)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+    painter.fillRect(pixmap.rect(), QColor('white'))
+    painter.end()
+
+    button.setIcon(QIcon(pixmap))
+    button.setIconSize(size)
+
 
 def save_image_from_label(label, path, modo='guardar'):
     if modo == 'guardar':
@@ -142,24 +170,66 @@ def clean_temp_images():
 
 def render_widget_to_qimage(widget: QWidget, target_size: QSize) -> QImage:
     """
-    Renderiza un QWidget a un QImage con una resolución específica.
+    Renderiza un QWidget a un QImage con el tamaño deseado,
+    asegurando que el contenido se expanda completamente.
     """
+
+
+    # Guardar tamaño original
+    original_size = widget.size()
+
+    # Redimensionar temporalmente
+    widget.resize(target_size)
+    widget.ensurePolished()
+
+    # Forzar layout si existe
+    layout = widget.layout()
+    if layout:
+        layout.activate()
+
+    widget.updateGeometry()
+    widget.repaint()
+
+    # Crear imagen base
     image = QImage(target_size, QImage.Format.Format_ARGB32_Premultiplied)
-    image.fill(0x000000 )  # fondo blanco
+    image.fill(Qt.GlobalColor.white)
 
+    # Pintar el widget completo
     painter = QPainter(image)
-    scale_x = target_size.width() / widget.width()
-    scale_y = target_size.height() / widget.height()
-    painter.scale(scale_x, scale_y)
-
-    # Llamada correcta al metodo render
     widget.render(
         painter,
-        QPoint(0, 0),  # targetOffset
-        QRegion(),     # sourceRegion
-        QWidget.RenderFlag.DrawChildren  # renderFlags
+        QPoint(0, 0),
+        QRegion(),
+        QWidget.RenderFlag.DrawChildren | QWidget.RenderFlag.DrawWindowBackground
     )
     painter.end()
+
+    # Restaurar tamaño original
+    widget.resize(original_size)
+
+    return image
+
+def render_widget_scaled(widget: QWidget, final_size: QSize) -> QImage:
+    """
+    Renderiza un QWidget directamente a la resolución final sin usar escalados,
+    ajustando temporalmente el tamaño del widget.
+    """
+    original_size = widget.size()
+    widget.resize(final_size)  # Cambia tamaño del widget para renderizar a tamaño real
+
+    image = QImage(final_size, QImage.Format.Format_ARGB32_Premultiplied)
+    #image.fill(Qt.GlobalColor.Transparent)
+
+    painter = QPainter(image)
+    widget.render(
+        painter,
+        QPoint(0, 0),
+        QRegion(),
+        QWidget.RenderFlag.DrawChildren | QWidget.RenderFlag.DrawWindowBackground
+    )
+    painter.end()
+
+    widget.resize(original_size)  # Restaurar tamaño original
 
     return image
 
@@ -170,17 +240,17 @@ def guardar_qimage_temporal(image: QImage, nombre: str) -> str:
     Guarda una imagen QImage como PNG temporal y retorna su ruta.
     """
     ruta = get_temp_path(nombre)
-    image.save(str(ruta), "PNG")
+    image.save(str(ruta))
     return str(ruta)
 
 
-def show_scaled_preview(image_path: str, label_widget):
+def show_scaled_preview(image_path: str, label_widget, scaled= False):
     """
     Muestra la imagen escalada proporcionalmente dentro del QLabel.
     """
     if Path(image_path).exists():
         pixmap = QPixmap(image_path)
-        label_widget.setScaledContents(True)
+        label_widget.setScaledContents(scaled)
 
         scaled = pixmap.scaled(
             label_widget.size(),
@@ -222,7 +292,7 @@ class CredencialRenderer:
         except Exception as e:
             print(f"[ERROR] Vista previa: {e}")
             if self.parent:
-                QMessageBox.critical(self.parent, "Error", f"No se pudo generar la vista previa:\n{e}")
+                QMessageBox.critical(self.parent.captureView, "Error", f"No se pudo generar la vista previa:\n{e}")
 
     def generate_images_for_export(self):
         """
@@ -232,8 +302,8 @@ class CredencialRenderer:
             clean_temp_images()
             size_real = QSize(1015, 638)
 
-            front = render_widget_to_qimage(self.front_widget, size_real)
-            reverse = render_widget_to_qimage(self.back_widget, size_real)
+            front = render_widget_scaled(self.front_widget, size_real)
+            reverse = render_widget_scaled(self.back_widget, size_real)
 
             self.front_image = guardar_qimage_temporal(front, "credencial_frontal.png")
             self.reverse_image = guardar_qimage_temporal(reverse, "credencial_reverso.png")
@@ -244,7 +314,7 @@ class CredencialRenderer:
         except Exception as e:
             print(f"[ERROR] Exportación: {e}")
             if self.parent:
-                QMessageBox.critical(self.parent, "Error", f"No se pudo exportar la credencial:\n{e}")
+                QMessageBox.critical(self.parent.captureView, "Error", f"No se pudo exportar la credencial:\n{e}")
 
     def show_pdf_in_browser(self):
         """
