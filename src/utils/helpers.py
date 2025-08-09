@@ -182,18 +182,26 @@ def render_widget_to_qimage(widget: QWidget, target_size: QSize) -> QImage:
 
     return image
 
-def render_widget_scaled(widget: QWidget, final_size: QSize) -> QImage:
+def render_widget_scaled_with_factor(widget: QWidget, gui_size: QSize, final_size: QSize) -> QImage:
     """
-    Renderiza un QWidget directamente a la resolución final sin usar escalados,
-    ajustando temporalmente el tamaño del widget.
+    Renderiza un QWidget diseñado en gui_size, escalándolo proporcionalmente
+    para que encaje en final_size sin perder proporción ni calidad.
     """
     original_size = widget.size()
-    widget.resize(final_size)  # Cambia tamaño del widget para renderizar a tamaño real
+    widget.resize(gui_size)
+    widget.ensurePolished()
 
     image = QImage(final_size, QImage.Format.Format_ARGB32_Premultiplied)
-    #image.fill(Qt.GlobalColor.Transparent)
+    image.fill(Qt.white)
 
     painter = QPainter(image)
+
+    scale_x = final_size.width() / gui_size.width()
+    scale_y = final_size.height() / gui_size.height()
+
+    # Aplica escala proporcional
+    painter.scale(scale_x, scale_y)
+
     widget.render(
         painter,
         QPoint(0, 0),
@@ -202,9 +210,9 @@ def render_widget_scaled(widget: QWidget, final_size: QSize) -> QImage:
     )
     painter.end()
 
-    widget.resize(original_size)  # Restaurar tamaño original
-
+    widget.resize(original_size)
     return image
+
 
 
 
@@ -268,15 +276,13 @@ class CredencialRenderer:
                 QMessageBox.critical(self.parent.captureView, "Error", f"No se pudo generar la vista previa:\n{e}")
 
     def generate_images_for_export(self):
-        """
-        Genera imágenes en alta resolución para exportar.
-        """
         try:
             clean_temp_images()
-            size_real = QSize(1015, 638)
+            size_gui = QSize(500, 300)  # Tamaño real del widget en QtDesigner (preview)
+            size_real = QSize(1011, 638)  # Tamaño real para impresión CR80 a 300 DPI
 
-            front = render_widget_scaled(self.front_widget, size_real)
-            reverse = render_widget_scaled(self.back_widget, size_real)
+            front = render_widget_scaled_with_factor(self.front_widget, size_gui, size_real)
+            reverse = render_widget_scaled_with_factor(self.back_widget, size_gui, size_real)
 
             self.front_image = guardar_qimage_temporal(front, "credencial_frontal.png")
             self.reverse_image = guardar_qimage_temporal(reverse, "credencial_reverso.png")

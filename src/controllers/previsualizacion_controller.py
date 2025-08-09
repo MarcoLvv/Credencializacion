@@ -24,8 +24,8 @@ class PreviewController:
         back_background = get_background_back_side("back_sidev2")
         qr_path = get_layout_qr()
 
-        show_scaled_preview(str(front_background), self.ui.labelFrontBackgroundCredential)
-        show_scaled_preview(str(back_background), self.ui.labelReverseBackgroundCredential)
+        show_scaled_preview(str(front_background), self.ui.labelFrontBackgroundCredential, scaled=True)
+        show_scaled_preview(str(back_background), self.ui.labelReverseBackgroundCredential, scaled=True)
         show_scaled_preview(str(qr_path), self.ui.labelQrWhatsappCredential, scaled=True)
 
         # Ajustar etiquetas de texto
