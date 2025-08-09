@@ -716,7 +716,7 @@ class Ui_MainWindow(object):
         self.labelCredentialFamCLogo.setStyleSheet(u"image: url(:/layout/familia.png);")
         self.labelSignatureCredential = QLabel(self.backWidgetCredential)
         self.labelSignatureCredential.setObjectName(u"labelSignatureCredential")
-        self.labelSignatureCredential.setGeometry(QRect(230, 65, 190, 70))
+        self.labelSignatureCredential.setGeometry(QRect(248, 65, 190, 70))
         self.labelSignatureCredential.setMinimumSize(QSize(190, 70))
         self.labelSignatureCredential.setMaximumSize(QSize(170, 60))
         palette6 = QPalette()
