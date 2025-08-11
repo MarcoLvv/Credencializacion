@@ -7,6 +7,7 @@ from src.controllers.camera_controller import CameraController
 from src.controllers.signature_controller import SignatureController
 from src.utils.data_utils import normalize_credential_data
 
+from datetime import date
 from src.utils.helpers import (
     collect_data_form,
     save_temporary_file
@@ -141,19 +142,19 @@ class CaptureController(QObject):
         photo_path = save_temporary_file(get_temp_foto_path(), get_foto_path(folio), "Foto")
         signature_path = save_temporary_file(get_temp_firma_path(), get_firma_path(folio), "Firma")
 
+        # Agregar rutas sin volver a normalizar para no perder FechaAlta
         data.update({
             "RutaFoto": safe_path(photo_path),
             "RutaFirma": safe_path(signature_path)
         })
 
         try:
-            clean_data = normalize_credential_data(data)
             if is_update:
-                self.db.actualizar_credencial(folio, **clean_data)
+                self.db.actualizar_credencial(folio, **data)
                 QMessageBox.information(self.mw.captureView, "Actualizado",
                                         f"Credencial {folio} editada correctamente.")
             else:
-                self.db.insertar_credencial(**clean_data)
+                self.db.insertar_credencial(**data)
                 QMessageBox.information(self.mw.captureView, "Guardado", f"Credencial {folio} guardada correctamente.")
             self.updated_credential.emit()
         except Exception as e:

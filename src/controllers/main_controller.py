@@ -316,7 +316,6 @@ class MainWindow(QMainWindow):
         # Obtener todos los usuarios
         usuarios = model_dao.get_all()
         if not usuarios:
-            print("[Exportación] No hay usuarios en la base de datos.")
             QMessageBox.critical(self, "Error al importar", "[Exportación] No hay usuarios en la base de datos.")
             return
 

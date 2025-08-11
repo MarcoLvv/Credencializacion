@@ -566,17 +566,17 @@ class Ui_MainWindow(object):
         self.credentialPreview.setMinimumSize(QSize(998, 680))
         self.horizontalLayout_6 = QHBoxLayout(self.credentialPreview)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.CredentialBtns = QWidget(self.credentialPreview)
-        self.CredentialBtns.setObjectName(u"CredentialBtns")
-        self.CredentialBtns.setMinimumSize(QSize(160, 662))
-        self.CredentialBtns.setMaximumSize(QSize(160, 662))
-        self.verticalLayout_10 = QVBoxLayout(self.CredentialBtns)
+        self.credentialBtns = QWidget(self.credentialPreview)
+        self.credentialBtns.setObjectName(u"credentialBtns")
+        self.credentialBtns.setMinimumSize(QSize(160, 662))
+        self.credentialBtns.setMaximumSize(QSize(160, 662))
+        self.verticalLayout_10 = QVBoxLayout(self.credentialBtns)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.verticalSpacer_4 = QSpacerItem(20, 100, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
         self.verticalLayout_10.addItem(self.verticalSpacer_4)
 
-        self.printBtn = QPushButton(self.CredentialBtns)
+        self.printBtn = QPushButton(self.credentialBtns)
         self.printBtn.setObjectName(u"printBtn")
         self.printBtn.setMinimumSize(QSize(140, 45))
         self.printBtn.setMaximumSize(QSize(140, 45))
@@ -590,7 +590,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_10.addItem(self.verticalSpacer_3)
 
 
-        self.horizontalLayout_6.addWidget(self.CredentialBtns)
+        self.horizontalLayout_6.addWidget(self.credentialBtns)
 
         self.credentialWidget = QWidget(self.credentialPreview)
         self.credentialWidget.setObjectName(u"credentialWidget")

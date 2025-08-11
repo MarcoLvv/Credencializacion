@@ -16,7 +16,8 @@ class PreviewController:
         self.temp_pdf_path = None
         self.render = CredencialRenderer(self.ui.frontWidgetCredential, self.ui.backWidgetCredential, self.ui)
         print("[DEBUG] PreviewController inicializado")
-        self.ui.printBtn.clicked.connect(self.render.show_pdf_in_browser)
+        self.ui.printBtn.clicked.connect(lambda: self.render.show_pdf_in_browser(self.db))
+
 
     def show_credential(self, data):
         # Cargar fondos y QR
@@ -49,6 +50,7 @@ class PreviewController:
             get("Colonia", ""),
             get("Municipio", "")
         ]))
+        self.render.folio_id = self.folio_id  # donde folio es el ID o clave primaria de la credencial
 
         self.ui.labelCredentialName.setText(nombre_completo)
         self.ui.labelCredentialAddress.setText(direccion)

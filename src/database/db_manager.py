@@ -76,6 +76,7 @@ class DBManager:
             Materno=datos.get("Materno", ""),
             CURP=datos.get("CURP", ""),
             FechaNacimiento=datos.get("FechaNacimiento"),
+            FechaAlta=datos.get("FechaAlta"),
             Calle=datos.get("Calle", ""),
             Lote=datos.get("Lote", ""),
             Manzana=datos.get("Manzana", ""),
@@ -181,3 +182,15 @@ class DBManager:
         with self.Session() as session:
             session.merge(usuario)
             session.commit()
+
+    def incrementar_veces_impresa(self, folio_id: str):
+        """Incrementa el contador de VecesImpresa en 1 para una credencial."""
+        session = self.Session()
+        try:
+            credencial = session.query(TbcUsuarios).filter_by(FolioId=folio_id).first()
+            if credencial:
+                credencial.VecesImpresa = (credencial.VecesImpresa or 0) + 1
+                session.commit()
+        except Exception as e:
+            print(f"Error al incrementar VecesImpresa para {folio_id}: {e}")
+            session.rollback()

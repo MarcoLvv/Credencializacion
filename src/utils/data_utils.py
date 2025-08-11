@@ -1,21 +1,34 @@
 import pandas as pd
 from datetime import datetime, date
 
-def normalize_credential_data(raw_data: dict) -> dict:
-    """Limpia, normaliza y asegura los campos obligatorios de una credencial."""
 
-    # Limpieza general de strings excepto FechaNacimiento
+def normalize_credential_data(raw_data: dict) -> dict:
     data = {
         k: ("" if pd.isna(v) or v is None else str(v).strip())
         for k, v in raw_data.items()
-        if k != "FechaNacimiento"
+        if k not in ("FechaNacimiento", "FechaAlta")
     }
 
-    # Validación/Asignación de FechaNacimiento
-    fecha = raw_data.get("FechaNacimiento")
-    if not isinstance(fecha, date):
-        raise ValueError("FechaNacimiento debe ser un objeto date válido.")
-    data["FechaNacimiento"] = fecha
+    def parse_date(value, field_name):
+        if isinstance(value, date):
+            return value
+        if isinstance(value, str):
+            try:
+                return datetime.strptime(value, "%Y-%m-%d").date()
+            except Exception:
+                raise ValueError(f"{field_name} string debe tener formato YYYY-MM-DD")
+        if value is None:
+            # Si quieres, devuelve fecha de hoy o error
+            return date.today()
+        raise ValueError(f"{field_name} debe ser objeto date o string con formato YYYY-MM-DD")
+
+    fecha_nac_raw = raw_data.get("FechaNacimiento")
+    data["FechaNacimiento"] = parse_date(fecha_nac_raw, "FechaNacimiento")
+
+    fecha_alta_raw = raw_data.get("FechaAlta")
+    if fecha_alta_raw is None:
+        fecha_alta_raw = date.today()
+    data["FechaAlta"] = parse_date(fecha_alta_raw, "FechaAlta")
 
     # Valores por defecto
     defaults = {
@@ -23,16 +36,14 @@ def normalize_credential_data(raw_data: dict) -> dict:
         "RutaFirma": "",
         "RutaQR": "",
         "Responsable": "",
-        "NumImpresion": 0,
         "VecesImpresa": 0,
-        #"Entregada": True,
-        "FechaAlta": date.today()
     }
-
     for key, value in defaults.items():
         data.setdefault(key, value)
 
     return data
+
+
 
 def convert_dates_in_dict(data: dict, date_fields: list):
     """

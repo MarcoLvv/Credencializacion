@@ -38,8 +38,9 @@ class TbcUsuarios(Base):
     RutaFirma = Column(String(200), nullable=False, default="")
     RutaQR = Column(String(200), nullable=False, default="")
 
-    NumImpresion = Column(Integer)
+    #NumImpresion = Column(Integer)
     FechaAlta = Column(Date)
+
     VecesImpresa = Column(Integer, default=0)
    # Entregada = Column(Boolean, default=False)
 

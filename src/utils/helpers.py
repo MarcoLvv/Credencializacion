@@ -246,11 +246,11 @@ class CredencialRenderer:
     Clase que encapsula el proceso de generación de imágenes de credenciales.
     """
 
-    def __init__(self, front_widget: QWidget, back_widget: QWidget, parent=None):
+    def __init__(self, front_widget: QWidget, back_widget: QWidget, parent=None, db = None):
         self.front_widget = front_widget
         self.back_widget = back_widget
         self.parent = parent  # Para QMessageBox
-
+        self.db = db
         self.front_image = None
         self.reverse_image = None
 
@@ -295,18 +295,33 @@ class CredencialRenderer:
             if self.parent:
                 QMessageBox.critical(self.parent.captureView, "Error", f"No se pudo exportar la credencial:\n{e}")
 
-    def show_pdf_in_browser(self):
+    def show_pdf_in_browser(self, db):
         """
-        Llama a la función para generar el PDF y lo abre en el navegador.
+        Genera el PDF, lo abre en el navegador y actualiza VecesImpresa.
         """
+        if not getattr(self, "folio_id", None):
+            print("[ERROR] No se ha establecido folio_id para la impresión")
+            return
+
+        self.db = db
         self.generate_images_for_export()
         pdf_path = generar_pdf_doble_cara(self.front_image, self.reverse_image)
 
         if pdf_path and os.path.exists(pdf_path):
             webbrowser.open(pdf_path)
+
+            try:
+                self.db.incrementar_veces_impresa(self.folio_id)
+                print(f"[DEBUG] VecesImpresa incrementado para folio {self.folio_id}")
+                if hasattr(self.parent, "reload_table"):
+                    self.parent.reload_table()
+            except Exception as e:
+                print(f"Error al actualizar VecesImpresa: {e}")
         else:
             if self.parent:
                 QMessageBox.warning(self.parent, "PDF", "No se pudo generar el PDF.")
+
+
 
 
 
