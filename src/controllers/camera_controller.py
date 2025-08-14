@@ -1,16 +1,16 @@
 import os
 
-from src.utils.camera_utils import detectar_rostro, detect_available_cameras, crop_to_4_5, process_frame_with_face
-from src.utils.helpers import show_scaled_preview
+from src.utils.camera_utils import detect_available_cameras, crop_to_4_5, process_frame_with_face
+from src.utils.render_utils import show_scaled_preview
 
 os.environ["OPENCV_LOG_LEVEL"] = "SILENT"
 import logging
 
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QImage, QPixmap
-from PySide6.QtWidgets import QFileDialog, QMessageBox, QLabel
+from PySide6.QtWidgets import QFileDialog, QMessageBox
 
-from src.utils.rutas import get_temp_foto_path, heearcascade_face_path
+from src.utils.rutas import get_temp_foto_path
 
 import numpy as np
 import cv2
@@ -20,6 +20,23 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
+
+
+def _crop_to_label_ratio(image: np.ndarray, target_ratio: float) -> np.ndarray:
+    h, w = image.shape[:2]
+    current_ratio = w / h
+
+    if current_ratio > target_ratio:
+        # Imagen demasiado ancha, recortar ancho
+        new_w = int(h * target_ratio)
+        x1 = (w - new_w) // 2
+        return image[:, x1:x1 + new_w]
+    else:
+        # Imagen demasiado alta, recortar altura
+        new_h = int(w / target_ratio)
+        y1 = (h - new_h) // 2
+        return image[y1:y1 + new_h, :]
+
 
 class CameraController:
     def __init__(self, parent_window, label_foto):
@@ -41,7 +58,7 @@ class CameraController:
             self.camera_index = indexes
             logging.info("Cámaras detectadas: %s", indexes)
         except Exception as e:
-            logging.exception("Error al detectar cámaras")
+            logging.exception(f"Error al detectar cámaras {e}")
 
     def prepare_photo_state(self):
         self.stop_camera()
@@ -111,15 +128,12 @@ class CameraController:
             self.cam = None
 
     def _update_frame(self):
-        logging.debug("Llamado a _update_frame")
         if self.cam and self.cam.isOpened():
             ret, frame = self.cam.read()
             if ret:
-                logging.debug("Frame leído correctamente")
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame_cropped = crop_to_4_5(frame_rgb)
                 self.last_frame = frame_rgb.copy()
-                logging.debug("last_frame actualizado")
                 self.show_image_no_borders(frame_cropped)
             else:
                 logging.warning("Frame no leído desde la cámara")
@@ -139,26 +153,23 @@ class CameraController:
 
         temp_photo_path = get_temp_foto_path()
         logging.debug("Intentando guardar en path: %s", temp_photo_path)
-        logging.debug("Existe directorio padre: %s", temp_photo_path.parent.exists())
-        logging.debug("Es escribible: %s", os.access(str(temp_photo_path.parent), os.W_OK))
 
         try:
-            if processed.shape[2] == 4:
-                frame_to_save = cv2.cvtColor(processed, cv2.COLOR_RGBA2BGR)
-            else:
-                frame_to_save = cv2.cvtColor(processed, cv2.COLOR_RGB2BGR)
+            # if processed.shape[2] == 4:
+            #     frame_to_save = cv2.cvtColor(processed, cv2.COLOR_RGBA2BGR)
+            # else:
+            #     frame_to_save = cv2.cvtColor(processed, cv2.COLOR_RGB2BGR)
 
             # Prueba: intentar crear un archivo de texto en el mismo lugar
-            try:
-                temp_photo_path.parent.mkdir(parents=True, exist_ok=True)
-                test_file = temp_photo_path.parent / "test.txt"
-                with open(test_file, "w", encoding="utf-8") as f:
-                    f.write("prueba de escritura")
-                logging.debug("Se pudo escribir test.txt correctamente")
-            except Exception as e:
-                logging.exception("Fallo al escribir test.txt en temp dir")
+            # try:
+            #     temp_photo_path.parent.mkdir(parents=True, exist_ok=True)
+            #     test_file = temp_photo_path.parent / "test.txt"
+            #     with open(test_file, "w", encoding="utf-8") as f:
+            #         f.write("prueba de escritura")
+            #     logging.debug("Se pudo escribir test.txt correctamente")
+            # except Exception as e:
+            #     logging.exception("Fallo al escribir test.txt en temp dir")
 
-            logging.debug("processed shape: %s, dtype: %s", processed.shape, processed.dtype)
 
             logging.info(f"Procesamiento completo. Intentando guardar imagen en: {temp_photo_path}")
 
@@ -166,12 +177,12 @@ class CameraController:
             #success = cv2.imwrite(str(temp_photo_path), frame_to_save, [cv2.IMWRITE_JPEG_QUALITY, 95])
 
             self.last_photo_path = str(temp_photo_path)
-            show_scaled_preview(self.last_photo_path, self.photo_label)
+            show_scaled_preview(self.last_photo_path, self.photo_label, scaled=True)
             self.stop_camera()
             self.status = 2
             self._update_button("Repetir", True)
         except Exception as e:
-            logging.exception("Error al guardar imagen capturada")
+            logging.exception(f"Error al guardar imagen capturada: {e}")
 
     def repeat_photo(self):
         self.last_photo_path = ""
@@ -223,26 +234,11 @@ class CameraController:
     # def get_photo_path(self):
     #     return self.last_photo_path
 
-    def _crop_to_label_ratio(self, image: np.ndarray, target_ratio: float) -> np.ndarray:
-        h, w = image.shape[:2]
-        current_ratio = w / h
-
-        if current_ratio > target_ratio:
-            # Imagen demasiado ancha, recortar ancho
-            new_w = int(h * target_ratio)
-            x1 = (w - new_w) // 2
-            return image[:, x1:x1 + new_w]
-        else:
-            # Imagen demasiado alta, recortar altura
-            new_h = int(w / target_ratio)
-            y1 = (h - new_h) // 2
-            return image[y1:y1 + new_h, :]
-
     def show_image_no_borders(self, image: np.ndarray):
         label_size = self.photo_label.size()
         label_ratio = label_size.width() / label_size.height()
 
-        cropped_image = self._crop_to_label_ratio(image, label_ratio)
+        cropped_image = _crop_to_label_ratio(image, label_ratio)
 
         h, w = cropped_image.shape[:2]
         channels = cropped_image.shape[2] if cropped_image.ndim == 3 else 1

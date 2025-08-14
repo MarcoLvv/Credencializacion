@@ -70,6 +70,9 @@ QWidget#buttonsBar {
     border: 1px solid #0E4F6B;
 }
 
+#credentialBtns QLabel, QCheckBox{
+    color: #FFFFFF}
+
 
 /* === FRAME CONTENEDOR DEL STACKED === */
 QWidget#homeView {

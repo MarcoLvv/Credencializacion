@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import (
-    Column, Integer, String, Date, Boolean, inspect
+    Column, Integer, String, Date, inspect
 )
 from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 
@@ -16,7 +16,7 @@ class TbcUsuarios(Base):
     Nombre = Column(String(100), nullable=False, default="")
     Paterno = Column(String(100), nullable=False, default="")
     Materno = Column(String(100), nullable=False, default="")
-    FechaNacimiento = Column(Date, nullable=False)
+    FechaNacimiento = Column(Date, nullable=True)
     Genero = Column(String(10), nullable=False, default="")
     CURP = Column(String(20), nullable=False, default="")
     Calle = Column(String(100), nullable=False, default="")
@@ -36,13 +36,11 @@ class TbcUsuarios(Base):
 
     RutaFoto = Column(String(255), nullable=False, default="")
     RutaFirma = Column(String(200), nullable=False, default="")
-    RutaQR = Column(String(200), nullable=False, default="")
 
-    #NumImpresion = Column(Integer)
-    FechaAlta = Column(Date)
+    FechaAlta = Column(Date, nullable=False, default=date.today)
 
     VecesImpresa = Column(Integer, default=0)
-   # Entregada = Column(Boolean, default=False)
+
 
     def __repr__(self):
         return f"<Usuario {self.FolioId} - {self.Nombre} {self.Paterno}>"

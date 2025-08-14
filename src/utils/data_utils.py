@@ -1,8 +1,19 @@
 import pandas as pd
 from datetime import datetime, date
 
+from pandas import isna
+
 
 def normalize_credential_data(raw_data: dict) -> dict:
+    """
+    Limpia y normaliza los datos de una fila de Excel/CSV.
+    - Strings se limpian
+    - None o NaN se convierten en ""
+    - FechaNacimiento y FechaAlta se convierten a datetime.date
+      si faltan, se asigna date.today()
+    - Se agregan valores por defecto para ciertos campos
+    """
+    # Limpieza de strings y conversión de NaN a ""
     data = {
         k: ("" if pd.isna(v) or v is None else str(v).strip())
         for k, v in raw_data.items()
@@ -10,31 +21,31 @@ def normalize_credential_data(raw_data: dict) -> dict:
     }
 
     def parse_date(value, field_name):
+        """Convierte a date; si está vacío o mal, asigna hoy"""
         if isinstance(value, date):
             return value
         if isinstance(value, str):
             try:
                 return datetime.strptime(value, "%Y-%m-%d").date()
             except Exception:
-                raise ValueError(f"{field_name} string debe tener formato YYYY-MM-DD")
-        if value is None:
-            # Si quieres, devuelve fecha de hoy o error
+                print(f"⚠️ {field_name} en fila tiene formato incorrecto. Se asignará fecha hoy.")
+                return date.today()
+        if value is None or (isinstance(value, float) and pd.isna(value)):
             return date.today()
-        raise ValueError(f"{field_name} debe ser objeto date o string con formato YYYY-MM-DD")
+        raise ValueError(f"{field_name} debe ser date o string con formato YYYY-MM-DD")
 
+    # FechaNacimiento
     fecha_nac_raw = raw_data.get("FechaNacimiento")
     data["FechaNacimiento"] = parse_date(fecha_nac_raw, "FechaNacimiento")
 
+    # FechaAlta
     fecha_alta_raw = raw_data.get("FechaAlta")
-    if fecha_alta_raw is None:
-        fecha_alta_raw = date.today()
-    data["FechaAlta"] = parse_date(fecha_alta_raw, "FechaAlta")
+    data["FechaAlta"] = parse_date(fecha_alta_raw, "FechaAlta") if fecha_alta_raw else date.today()
 
     # Valores por defecto
     defaults = {
         "RutaFoto": "",
         "RutaFirma": "",
-        "RutaQR": "",
         "Responsable": "",
         "VecesImpresa": 0,
     }
@@ -42,6 +53,7 @@ def normalize_credential_data(raw_data: dict) -> dict:
         data.setdefault(key, value)
 
     return data
+
 
 
 

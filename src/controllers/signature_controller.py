@@ -63,7 +63,7 @@ class SignatureController:
                 return None
 
             self.last_signature_path = str(signature_path)
-            self._show_signature(signature_path)
+            self._show_signature(self.last_signature_path)
             self._clean_device()
             self._update_button("Repetir Firma")
             self.status = 2

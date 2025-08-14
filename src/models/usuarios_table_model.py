@@ -1,6 +1,5 @@
 from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
 
-from src.models.credencial_model import TbcUsuariosDAO
 
 
 class UsuariosTableModel(QAbstractTableModel):

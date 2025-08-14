@@ -1,16 +1,17 @@
 # capture_controller.py
+import logging
+
 import pandas as pd
-from PySide6.QtCore import QObject, Signal, QDate, QSize
+from PySide6.QtCore import QObject, Signal, QDate
 from PySide6.QtWidgets import QMessageBox
 
 from src.controllers.camera_controller import CameraController
 from src.controllers.signature_controller import SignatureController
 from src.utils.data_utils import normalize_credential_data
 
-from datetime import date
 from src.utils.helpers import (
     collect_data_form,
-    save_temporary_file
+    save_temporary_file, clean_temp_images
 )
 
 from src.utils.rutas import (
@@ -66,6 +67,8 @@ class CaptureController(QObject):
 
     def clear_form(self):
         """Limpia el formulario de captura y detiene la cámara."""
+        clean_temp_images()
+
         self.camera_ctrl.stop_camera()
 
         campos = [
@@ -101,7 +104,6 @@ class CaptureController(QObject):
         raw_data = collect_data_form(self.ui)
         data = normalize_credential_data(raw_data)  # <--- Sanitiza los datos aquí
 
-        print(type(data["FechaNacimiento"]), data["FechaNacimiento"])
 
         if not data["Nombre"] or not data["CURP"]:
             QMessageBox.warning(self.ui.captureView, "Campos requeridos", "Nombre y CURP son obligatorios.")
@@ -123,7 +125,7 @@ class CaptureController(QObject):
             clean_data = normalize_credential_data(data)
         except Exception as e:
             QMessageBox.critical(self.mw.captureView, "Error de datos", f"No se pudo procesar la información: {e}")
-            return
+            return logging.warning(f"Error de datos: error: {e}")
 
         folio = self.db.generate_folio()
         self._save_credential_files_db(folio, clean_data, is_update=False)

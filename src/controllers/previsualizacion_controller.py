@@ -1,8 +1,11 @@
+import logging
 import os
-from PySide6.QtGui import QPixmap
+
+from PySide6.QtCore import Qt
+
 from PySide6.QtWidgets import QSizePolicy
 from src.utils.rutas import get_background_back_side, get_background_front_side, get_layout_qr
-from src.utils.helpers import (
+from src.utils.render_utils import (
     show_scaled_preview, CredencialRenderer,
 )
 
@@ -15,14 +18,20 @@ class PreviewController:
         self.reverse_image = None
         self.temp_pdf_path = None
         self.render = CredencialRenderer(self.ui.frontWidgetCredential, self.ui.backWidgetCredential, self.ui)
-        print("[DEBUG] PreviewController inicializado")
+        #print("[DEBUG] PreviewController inicializado")
+        logging.debug("[DEBUG] PreviewController inicializado")
         self.ui.printBtn.clicked.connect(lambda: self.render.show_pdf_in_browser(self.db))
+
+        # Conectar checkbox para cambiar background posterior
+        self.ui.checkBoxBackgroundSignature.stateChanged.connect(self.toggle_signature_background)
 
 
     def show_credential(self, data):
+
+        self.ui.checkBoxBackgroundSignature.setChecked(True)
         # Cargar fondos y QR
-        front_background = get_background_front_side("front_sidev2")
-        back_background = get_background_back_side("back_sidev2")
+        front_background = get_background_front_side("front_side")
+        back_background = get_background_back_side("back_side")
         qr_path = get_layout_qr()
 
         show_scaled_preview(str(front_background), self.ui.labelFrontBackgroundCredential, scaled=True)
@@ -54,7 +63,7 @@ class PreviewController:
 
         self.ui.labelCredentialName.setText(nombre_completo)
         self.ui.labelCredentialAddress.setText(direccion)
-        self.ui.labelCredentialCURP.setText(get("Curp", ""))
+        self.ui.labelCredentialCURP.setText(get("CURP", ""))
         self.ui.labelCredentialFolio.setText(self.folio_id)
 
         # Foto
@@ -72,10 +81,30 @@ class PreviewController:
             show_scaled_preview(ruta_firma, self.ui.labelSignatureCredential)
         else:
             self.ui.labelSignatureCredential.clear()
-            self.ui.labelSignatureCredential.setText("Sin firma")
-            self.ui.labelSignatureCredential.setStyleSheet("color: gray; font-style: italic;")
 
         # Generar imágenes temporales y PDF
         self.render.generate_images_for_preview()
 
+    def toggle_signature_background(self, state):
+        """
+        Cambia el fondo posterior entre versión con firma y sin firma.
+        Soporta tanto int como enum en 'state'.
+        """
+        # Convertimos siempre a int para evitar problemas de comparación
+        state_value = int(state) if not isinstance(state, int) else state
+
+        logging.debug(f"[DEBUG] Estado checkbox recibido: {state} ({state_value})")
+
+        if state_value == Qt.CheckState.Checked.value:  # 2
+            logging.debug("[DEBUG] Checkbox activado → Fondo SIN firma")
+            back_background = get_background_back_side("back_side")
+        else:  # 0 o 1
+            logging.debug("[DEBUG] Checkbox desactivado → Fondo CON firma")
+            back_background = get_background_back_side("back_side_wo_signature")
+
+        if back_background and back_background.exists():
+            show_scaled_preview(str(back_background), self.ui.labelReverseBackgroundCredential, scaled=True)
+            self.reverse_image = back_background
+        else:
+            logging.warning("[WARN] No se encontró el background posterior para la opción seleccionada")
 

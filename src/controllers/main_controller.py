@@ -5,11 +5,11 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date
 
-from PySide6.QtGui import QPixmap, Qt, QPainter, QIcon
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog, QAbstractItemView, QTableView
+from PySide6.QtGui import QPixmap, Qt, QIcon
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMessageBox, QMainWindow, QHeaderView, QFileDialog
 from sqlalchemy import func
 
 from sqlalchemy.inspection import inspect
@@ -19,12 +19,13 @@ from src.controllers.edit_controller import EditController
 from src.controllers.modulo_dialog import crear_base_si_no_existe
 from src.controllers.previsualizacion_controller import PreviewController
 from src.database.db_manager import DBManager
-from src.delegates.action_delegate import ActionDelegate, CheckboxColorDelegate
+from src.delegates.action_delegate import ActionDelegate
 from src.models.credencial_model import TbcUsuarios, TbcUsuariosDAO
 from src.models.usuarios_table_model import UsuariosTableModel
-from src.utils.helpers import sanitize_data, clean_empty_strings
+from src.utils.data_utils import normalize_credential_data
+from src.utils.helpers import sanitize_data, clean_empty_strings, clean_temp_images
 from src.utils.icons_utils import set_svg_icons
-from src.utils.rutas import get_bd_path, get_icons_path, get_exportaciones_dir, get_foto_dir
+from src.utils.rutas import get_bd_path, get_icons_path, get_exportaciones_dir
 
 from src.views.ventana_principal import Ui_MainWindow
 
@@ -41,6 +42,9 @@ def sanitize_value(value):
 
 
 def row_to_user(row, db, folio_directo=None):
+    """
+    Convierte una fila de Excel/CSV en un objeto TbcUsuarios listo para insertar.
+    """
     users = TbcUsuarios()
     fields_mapping = {
         'NOMBRE': 'Nombre',
@@ -58,39 +62,51 @@ def row_to_user(row, db, folio_directo=None):
         'CORREO': 'Email',
         'RESPONSABLE': 'Responsable',
         'CREDENCIAL IMPRESA': 'CredencialImpresa',
-        'ENTREGADA': 'Entragada'
+        'ENTREGADA': 'Entregada'
     }
 
     for excel_col, attr in fields_mapping.items():
         raw_value = row.get(excel_col)
 
-        if attr in ["FechaNacimiento", "FechaAlta"]:
+        # Fechas
+        if attr == "FechaNacimiento":
             try:
                 if isinstance(raw_value, str):
                     raw_value = raw_value.strip()
-                    value = datetime.strptime(raw_value, "%d/%m/%Y").date()
+                    value = datetime.strptime(raw_value, "%d/%m/%Y").date() if raw_value else None
                 elif isinstance(raw_value, pd.Timestamp):
                     value = raw_value.date()
+                elif isinstance(raw_value, date):
+                    value = raw_value
                 else:
                     value = None
             except Exception:
+                print(f"⚠️ Fila tiene fecha inválida en {excel_col}, se dejará vacía.")
                 value = None
-        elif attr in ["CredencialImpresa", "Entragada"]:
+
+        elif attr == "FechaAlta":
+            value = datetime.today().date()
+
+        # Booleanos
+        elif attr in ["CredencialImpresa", "Entregada"]:
             value = str(raw_value).strip().lower() in ["sí", "si", "1", "true", "x"]
+
+        # Strings y otros
         else:
             value = sanitize_value(raw_value)
-
-        # Evitar guardar 'nan' como string literal
-        if isinstance(value, str) and value.lower() == "nan":
-            value = ""
+            if isinstance(value, str) and value.lower() == "nan":
+                value = ""
 
         setattr(users, attr, value)
 
+    # Folio
     users.FolioId = db.generate_folio(consecutivo_directo=folio_directo)
-    users.FechaAlta = datetime.today().date()
+
+    # Limpiar strings vacíos
     clean_empty_strings(users)
 
     return users
+
 
 
 class MainWindow(QMainWindow):
@@ -195,10 +211,10 @@ class MainWindow(QMainWindow):
         self.ui.usersTableView.setModel(model)
 
         if not self.delegate_configured:
-            self._configurar_delegados(model)
+            self._configurar_delegados()
             self.delegate_configured = True
 
-    def _configurar_delegados(self, model):
+    def _configurar_delegados(self):
         """Configura los delegados de la tabla por primera vez."""
         table = self.ui.usersTableView
 
@@ -227,6 +243,7 @@ class MainWindow(QMainWindow):
 
     def view_home(self):
         """Muestra la vista de inicio y detiene cualquier cámara activa."""
+        clean_temp_images()
         self.capture_controller.camera_ctrl.prepare_photo_state()
         #self.capture_controller.signature_ctrl.prepare_signature_state()
 
@@ -263,12 +280,12 @@ class MainWindow(QMainWindow):
 
     def import_excel(self):
         excel_path, _ = QFileDialog.getOpenFileName(self, "Seleccionar archivo Excel", "",
-                                              "Excel (*.xlsx *.xls);;CSV (*.csv)")
+                                                    "Excel (*.xlsx *.xls);;CSV (*.csv)")
         if not excel_path:
             return
 
         try:
-            df = pd.read_excel(excel_path) if excel_path.endswith(".xlsx") else pd.read_csv(excel_path)
+            df = pd.read_excel(excel_path) if excel_path.endswith((".xlsx", ".xls")) else pd.read_csv(excel_path)
 
             # Obtener base del consecutivo
             with self.db.Session() as session:
@@ -277,20 +294,12 @@ class MainWindow(QMainWindow):
             users = []
             for offset, (_, row) in enumerate(df.iterrows()):
                 try:
-                    # Convierte la fila de pandas a diccionario y límpiala
-                    raw_data = row.to_dict()
-                    clean_data = sanitize_data(raw_data)
-
-                    # Genera folio
-                    consecutive_folio = db_consecutive + offset + 1
-
-                    # Crea el objeto usuario limpio
-                    excel_users = row_to_user(clean_data, self.db, consecutive_folio)
-                    users.append(excel_users)
-
+                    excel_user = row_to_user(row.to_dict(), self.db, db_consecutive + offset + 1)
+                    users.append(excel_user)
                 except Exception as e:
                     print(f"❌ Error en fila {offset + 1}: {e}")
 
+            # Insertar todos los usuarios
             self.db.insertar_multiples(users)
             self.reload_table()
 
@@ -299,6 +308,7 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Error al importar", str(e))
+            logging.warning(e)
 
     def reload_table(self):
         self.load_table()

@@ -41,3 +41,74 @@ def generar_pdf_doble_cara(frente_path, reverso_path):
 
     c.save()
     return pdf_path
+
+
+# === sizes & utils ============================================================
+from PySide6.QtCore import QSize, QPoint
+from PySide6.QtGui import QImage, QPainter, QRegion, Qt
+from PySide6.QtWidgets import QWidget
+
+CR80_MM = (85.60, 53.98)  # ancho, alto en mm
+
+def cr80_px(dpi: int = 300) -> QSize:
+    """Tamaño CR80 en píxeles para un DPI dado."""
+    inch_w = CR80_MM[0] / 25.4
+    inch_h = CR80_MM[1] / 25.4
+    return QSize(int(round(inch_w * dpi)), int(round(inch_h * dpi)))
+
+def render_widget_to_image(
+    widget: QWidget,
+    target_size: QSize,
+    *,
+    scale_from_natural: bool = False,
+    bg_color = Qt.GlobalColor.white,
+) -> QImage:
+    """
+    Renderiza un QWidget a QImage del tamaño final deseado.
+    - scale_from_natural=False: redimensiona temporalmente el widget a target_size y renderiza (máxima nitidez).
+    - scale_from_natural=True: renderiza al tamaño natural del widget y luego escala el QImage (seguro si tu layout no se
+      estira con resize()).
+    """
+    if scale_from_natural:
+        natural_size = widget.size()
+        image = QImage(natural_size, QImage.Format.Format_ARGB32_Premultiplied)
+        image.fill(bg_color)
+        painter = QPainter(image)
+        widget.render(
+            painter,
+            QPoint(0, 0),
+            QRegion(),
+            QWidget.RenderFlag.DrawChildren | QWidget.RenderFlag.DrawWindowBackground
+        )
+        painter.end()
+        return image.scaled(
+            target_size,
+            Qt.AspectRatioMode.IgnoreAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+    else:
+        original = widget.size()
+        widget.resize(target_size)
+        widget.ensurePolished()
+        if widget.layout():
+            widget.layout().activate()
+        widget.updateGeometry()
+        widget.repaint()
+
+        image = QImage(target_size, QImage.Format.Format_ARGB32_Premultiplied)
+        image.fill(bg_color)
+        painter = QPainter(image)
+        widget.render(
+            painter,
+            QPoint(0, 0),
+            QRegion(),
+            QWidget.RenderFlag.DrawChildren | QWidget.RenderFlag.DrawWindowBackground
+        )
+        painter.end()
+
+        widget.resize(original)
+        return image
+
+def guardar_qimage_png_temp(image: QImage, ruta: str) -> str:
+    image.save(ruta, "PNG", 100)
+    return ruta

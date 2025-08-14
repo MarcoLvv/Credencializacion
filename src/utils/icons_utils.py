@@ -49,3 +49,6 @@ class set_svg_icons(QObject):
         set_svg_icon(self.ui.uploadPhotoBtn, "camera-search.svg", QSize(24, 24))
         set_svg_icon(self.ui.startSignatureBtn, "writing.svg", QSize(24, 24))
         set_svg_icon(self.ui.saveDataBtn, "folder-check.svg", QSize(24, 24))
+
+        #Iconos En La Vista De La Previsualizacion
+        set_svg_icon(self.ui.printBtn, "print.svg", QSize(24, 24))

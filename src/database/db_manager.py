@@ -92,7 +92,6 @@ class DBManager:
             Email=datos.get("Email", ""),
             RutaFoto=datos.get("RutaFoto", ""),
             RutaFirma=datos.get("RutaFirma", ""),
-            RutaQR=datos.get("RutaQR", "")
         )
 
         with self.Session() as session:

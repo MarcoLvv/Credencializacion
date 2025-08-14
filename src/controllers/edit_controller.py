@@ -2,7 +2,6 @@
 from pathlib import Path
 from shutil import copyfile
 
-from PySide6.QtWidgets import QMessageBox
 from src.database.db_manager import DBManager
 from src.utils.helpers import save_image_from_label
 from src.utils.rutas import get_temp_foto_path, get_temp_firma_path

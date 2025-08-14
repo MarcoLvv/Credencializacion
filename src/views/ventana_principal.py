@@ -15,17 +15,17 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QFrame,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
-    QStackedWidget, QStatusBar, QTableView, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateEdit,
+    QFrame, QHBoxLayout, QHeaderView, QLabel,
+    QLineEdit, QMainWindow, QPushButton, QSizePolicy,
+    QSpacerItem, QStackedWidget, QStatusBar, QTableView,
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1218, 770)
+        MainWindow.resize(1221, 778)
         MainWindow.setMinimumSize(QSize(1218, 770))
         MainWindow.setStyleSheet(u"QMainWindow#MainWindow{\n"
 "	background-color: qradialgradient(spread:reflect, cx:0.5, cy:0.499, radius:2, fx:0.512088, fy:1, stop:0.0549451 rgba(7, 49, 80, 255), stop:0.0989011 rgba(8, 48, 83, 255), stop:0.917582 rgba(6, 47, 78, 255));\n"
@@ -568,8 +568,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
         self.credentialBtns = QWidget(self.credentialPreview)
         self.credentialBtns.setObjectName(u"credentialBtns")
-        self.credentialBtns.setMinimumSize(QSize(160, 662))
-        self.credentialBtns.setMaximumSize(QSize(160, 662))
+        self.credentialBtns.setMinimumSize(QSize(200, 662))
+        self.credentialBtns.setMaximumSize(QSize(200, 662))
         self.verticalLayout_10 = QVBoxLayout(self.credentialBtns)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.verticalSpacer_4 = QSpacerItem(20, 100, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
@@ -583,9 +583,23 @@ class Ui_MainWindow(object):
         icon8 = QIcon(QIcon.fromTheme(QIcon.ThemeIcon.DocumentPrint))
         self.printBtn.setIcon(icon8)
 
-        self.verticalLayout_10.addWidget(self.printBtn)
+        self.verticalLayout_10.addWidget(self.printBtn, 0, Qt.AlignmentFlag.AlignHCenter)
 
-        self.verticalSpacer_3 = QSpacerItem(50, 550, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer_7 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_10.addItem(self.verticalSpacer_7)
+
+        self.labelBackgroundSelectFront = QLabel(self.credentialBtns)
+        self.labelBackgroundSelectFront.setObjectName(u"labelBackgroundSelectFront")
+
+        self.verticalLayout_10.addWidget(self.labelBackgroundSelectFront)
+
+        self.checkBoxBackgroundSignature = QCheckBox(self.credentialBtns)
+        self.checkBoxBackgroundSignature.setObjectName(u"checkBoxBackgroundSignature")
+
+        self.verticalLayout_10.addWidget(self.checkBoxBackgroundSignature)
+
+        self.verticalSpacer_3 = QSpacerItem(50, 300, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
         self.verticalLayout_10.addItem(self.verticalSpacer_3)
 
@@ -645,9 +659,9 @@ class Ui_MainWindow(object):
         self.labelUserPhotoCredencial.setMinimumSize(QSize(115, 150))
         self.labelCredentialName = QLabel(self.frontWidgetCredential)
         self.labelCredentialName.setObjectName(u"labelCredentialName")
-        self.labelCredentialName.setGeometry(QRect(220, 27, 220, 70))
-        self.labelCredentialName.setMinimumSize(QSize(220, 70))
-        self.labelCredentialName.setMaximumSize(QSize(220, 70))
+        self.labelCredentialName.setGeometry(QRect(220, 27, 250, 70))
+        self.labelCredentialName.setMinimumSize(QSize(250, 70))
+        self.labelCredentialName.setMaximumSize(QSize(270, 70))
         palette4 = QPalette()
         palette4.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush)
         palette4.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, brush)
@@ -663,8 +677,8 @@ class Ui_MainWindow(object):
         self.labelFrontBackgroundCredential.setObjectName(u"labelFrontBackgroundCredential")
         self.labelFrontBackgroundCredential.setEnabled(True)
         self.labelFrontBackgroundCredential.setGeometry(QRect(0, 0, 501, 301))
-        sizePolicy3.setHeightForWidth(self.labelFrontBackgroundCredential.sizePolicy().hasHeightForWidth())
-        self.labelFrontBackgroundCredential.setSizePolicy(sizePolicy3)
+        sizePolicy.setHeightForWidth(self.labelFrontBackgroundCredential.sizePolicy().hasHeightForWidth())
+        self.labelFrontBackgroundCredential.setSizePolicy(sizePolicy)
         self.labelFrontBackgroundCredential.setMinimumSize(QSize(501, 301))
         self.labelFrontBackgroundCredential.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
         self.labelCredentialAddress = QLabel(self.frontWidgetCredential)
@@ -694,14 +708,10 @@ class Ui_MainWindow(object):
         self.backWidgetCredential.setMaximumSize(QSize(500, 300))
         self.labelReverseBackgroundCredential = QLabel(self.backWidgetCredential)
         self.labelReverseBackgroundCredential.setObjectName(u"labelReverseBackgroundCredential")
-        self.labelReverseBackgroundCredential.setGeometry(QRect(0, -4, 501, 300))
-        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.labelReverseBackgroundCredential.sizePolicy().hasHeightForWidth())
-        self.labelReverseBackgroundCredential.setSizePolicy(sizePolicy7)
-        self.labelReverseBackgroundCredential.setMinimumSize(QSize(501, 300))
-        self.labelReverseBackgroundCredential.setMaximumSize(QSize(500, 300))
+        self.labelReverseBackgroundCredential.setGeometry(QRect(0, -4, 505, 305))
+        sizePolicy.setHeightForWidth(self.labelReverseBackgroundCredential.sizePolicy().hasHeightForWidth())
+        self.labelReverseBackgroundCredential.setSizePolicy(sizePolicy)
+        self.labelReverseBackgroundCredential.setMinimumSize(QSize(501, 303))
         self.labelReverseBackgroundCredential.setStyleSheet(u"image: url(:/layout/back.png);")
         self.labelQrWhatsappCredential = QLabel(self.backWidgetCredential)
         self.labelQrWhatsappCredential.setObjectName(u"labelQrWhatsappCredential")
@@ -732,7 +742,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.addWidget(self.backWidgetCredential, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
 
 
-        self.horizontalLayout_6.addWidget(self.credentialWidget, 0, Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignVCenter)
+        self.horizontalLayout_6.addWidget(self.credentialWidget)
 
 
         self.horizontalLayout_5.addWidget(self.credentialPreview)
@@ -795,6 +805,8 @@ class Ui_MainWindow(object):
         self.txt_celular.setText(QCoreApplication.translate("MainWindow", u"Celular", None))
         self.txt_email.setText(QCoreApplication.translate("MainWindow", u"Email", None))
         self.printBtn.setText(QCoreApplication.translate("MainWindow", u"Imprimir", None))
+        self.labelBackgroundSelectFront.setText(QCoreApplication.translate("MainWindow", u"Fondo Para Credencial Posterior", None))
+        self.checkBoxBackgroundSignature.setText(QCoreApplication.translate("MainWindow", u"Firma", None))
         self.labelCredentialCURP.setText(QCoreApplication.translate("MainWindow", u"Curp", None))
         self.labelCredentialFolio.setText(QCoreApplication.translate("MainWindow", u"Folio", None))
         self.labelUserPhotoCredencial.setText(QCoreApplication.translate("MainWindow", u"Foto", None))

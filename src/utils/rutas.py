@@ -1,4 +1,5 @@
 import sys
+import tempfile
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -75,6 +76,11 @@ def get_temp_dir():
     return path
 
 # === Archivos temporales individuales ===
+
+def get_temp_path_qlabel(nombre_archivo: str) -> Path:
+    temp_dir = Path(tempfile.gettempdir()) / "credenciales_temp"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    return temp_dir / nombre_archivo
 
 def get_temp_path(nombre_archivo: str):
     """Devuelve la ruta para un archivo temporal dentro de /temp"""
