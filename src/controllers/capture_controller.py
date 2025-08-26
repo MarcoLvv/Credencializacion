@@ -1,225 +1,167 @@
-# src/controllers/capture_controller.py
-import os
-import cv2
-from PySide6.QtCore import QObject, Signal
-from pathlib import Path
-from PySide6.QtGui import QPixmap
+# capture_controller.py
+import logging
+
+import pandas as pd
+from PySide6.QtCore import QObject, Signal, QDate
 from PySide6.QtWidgets import QMessageBox
 
 from src.controllers.camera_controller import CameraController
-from src.controllers.firma_controller import FirmaController
-from src.controllers.previsualizacion_controller import PrevisualizacionController
-from src.database.db_manager import DBManager
-from src.utils.helpers import guardar_imagen_desde_label, recolectar_datos_formulario, guardar_archivo_temporal
-from src.utils.rutas import get_temp_foto_path, get_temp_firma_path, get_firma_path, get_foto_path
+from src.controllers.signature_controller import SignatureController
+from src.utils.data_utils import normalize_credential_data
 
+from src.utils.helpers import (
+    collect_data_form,
+    save_temporary_file, clean_temp_images
+)
 
-from src.utils.rutas import get_temp_foto_path
-import cv2
+from src.utils.rutas import (
+    get_temp_foto_path,
+    get_temp_firma_path,
+    get_firma_path,
+    get_foto_path,
+)
+def safe_path(path):
+    return "" if path is None or pd.isna(path) else str(path).strip()
+
 
 class CaptureController(QObject):
-    credencial_actualizada = Signal()
+    updated_credential = Signal()
 
-    def __init__(self, main_window,ui , db_manager):
+    def __init__(self, main_window, ui, db_manager, preview_ctrl):
         super().__init__()
         self.mw = main_window
         self.ui = ui
         self.db = db_manager
+        self.preview_ctrl = preview_ctrl
 
-        # Instancia del CameraController
-        self.camera_ctrl = CameraController(self.ui.labelFoto, self.ui)
-        self.ultima_ruta = None
-
-        # Otros controladores
-        self.firma_ctrl = FirmaController(parent_window=self.ui, label_firma=self.ui.labelFirma)
-        self.preview_ctrl = PrevisualizacionController(self.ui)
-
-        self.modo_edicion = False
-        self.credencial_editando = None
-
-        self._conectar_botones()
-
-    def _conectar_botones(self):
-        self.ui.btnIniciarFoto.clicked.connect(self.toggle_camera)
-        self.ui.btnSubirFoto.clicked.connect(self.camera_ctrl.subir_foto_desde_archivo)
-        self.ui.btnIniciarFirma.clicked.connect(self.firma_ctrl.manejar_estado_firma)
-        self.ui.btnCapturarFirma.setVisible(False)
-
-        # Conexión segura evitando warning
-        try:
-            self.ui.btnGuardarDatos.clicked.disconnect()
-        except (TypeError, RuntimeError):
-            pass
-        self.ui.btnGuardarDatos.clicked.connect(self.guardar_credencial)
-
-    def actualizar_db(self, nuevo_db_manager):
-
-        # Metodo para actualizar el DBManager desde fuera, útil cuando cambia la base de datos.
-
-        self.db = nuevo_db_manager
-
-    def toggle_camera(self):
-        self.camera_ctrl.manejar_estado_foto()
-
-    def capturar_foto(self):
-        ruta_foto = self.camera_ctrl.get_ruta_foto()
-        if not ruta_foto or not Path(ruta_foto).exists():
-            QMessageBox.warning(self.ui, "Error", "No se pudo capturar la imagen.")
-            return
-
-        self.ultima_ruta = ruta_foto
-
-        pixmap = QPixmap(ruta_foto)
-        self.ui.labelFoto.setPixmap(pixmap)
-        self.ui.labelFoto.setScaledContents(True)
-        self.ui.btnCapturarFoto.setEnabled(True)
-
-    # Aquí seguirías con los métodos guardar_credencial, etc.
-
-    # ... luego puedes conservar el resto de `guardar_credencial`, `_guardar_archivo_desde_label`, etc.
+        self.camera_ctrl = CameraController(self.ui, self.ui.labelPhoto )
+        self.signature_ctrl = SignatureController(self.ui, self.ui.labelSignature)
 
 
-    def limpiar_formulario(self):
-        self.camera_ctrl.detener_camara()
-        for campo in [
+
+        self.edition_mode = False
+        self.credential_editing = None
+        self.saved_connected = False
+
+        self._connect_buttons()
+
+    def _connect_buttons(self):
+        """Conecta los botones del formulario con sus respectivos controladores."""
+
+        self.ui.startPhotoBtn.clicked.connect(self.camera_ctrl.manage_photo_state)
+
+        self.ui.uploadPhotoBtn.clicked.connect(self.camera_ctrl.upload_photo_from_file)
+
+
+        self.ui.startSignatureBtn.clicked.connect(self.signature_ctrl.manage_signature_state)
+
+        if self.saved_connected:
+            try:
+                self.ui.saveDataBtn.clicked.disconnect(self.save_credential)
+            except Exception:
+                pass
+
+        self.ui.saveDataBtn.clicked.connect(self.save_credential)
+
+        self.saved_connected = True
+
+    def clear_form(self):
+        """Limpia el formulario de captura y detiene la cámara."""
+        clean_temp_images()
+
+        self.camera_ctrl.stop_camera()
+
+        campos = [
             self.ui.nombre, self.ui.paterno, self.ui.materno, self.ui.curp,
-            self.ui.fechaNacimiento, self.ui.calle, self.ui.lote,
-            self.ui.manzana, self.ui.numExt, self.ui.numInt, self.ui.codigoPostal, self.ui.colonia,
-            self.ui.municipio, self.ui.seccionElectoral, self.ui.genero,
-            self.ui.celular, self.ui.email
-        ]:
+            self.ui.calle, self.ui.lote,
+            self.ui.manzana, self.ui.numExt, self.ui.numInt, self.ui.codigoPostal,
+            self.ui.colonia, self.ui.municipio, self.ui.entidad, self.ui.seccionElectoral,
+            self.ui.genero, self.ui.celular, self.ui.email
+        ]
+        for campo in campos:
             campo.clear()
+
+        self.ui.fechaNacimiento.setDate(QDate(2000, 1, 1))  # ejemplo
+        self.ui.municipio.setText("Cuajimalpa")
+        self.ui.entidad.setText("Ciudad De Mexico")
+
         self.ui.genero.clear()
         self.ui.genero.addItems(["", "Masculino", "Femenino"])
 
-        self.ui.labelFoto.clear()
-        self.ui.labelFoto.setText("Cámara no activa")
-        self.ui.labelFoto.setStyleSheet("color: gray; font-style: italic;")
+        # Etiquetas de foto y firma
+        for label, texto in [(self.ui.labelPhoto, "Cámara no activa"), (self.ui.labelSignature, "")]:
+            label.clear()
+            label.setText(texto)
+            label.setStyleSheet("color: gray; font-style: italic;")
 
-        self.ui.labelFirma.clear()
-
-
-    def guardar_credencial(self):
-
+    def save_credential(self):
+        """Guarda una credencial nueva o actualiza una existente."""
         if not self.db:
             QMessageBox.critical(self.ui, "Error de base de datos",
-                                 "No se ha establecido conexión con una base de datos.")
+                                 "No se ha establecido conexión con la base de datos.")
             return
 
-        print(f"[DEBUG] Modo edición activo: {self.modo_edicion}")
-        print(f"[DEBUG] Credencial en edición: {self.credencial_editando}")
+        raw_data = collect_data_form(self.ui)
+        data = normalize_credential_data(raw_data)  # <--- Sanitiza los datos aquí
 
-        datos = recolectar_datos_formulario(self.ui)
 
-        if not datos["Nombre"] or not datos["CURP"]:
-            QMessageBox.warning(self.ui.viewCaptura, "Campos requeridos", "Nombre y CURP son obligatorios.")
+        if not data["Nombre"] or not data["CURP"]:
+            QMessageBox.warning(self.ui.captureView, "Campos requeridos", "Nombre y CURP son obligatorios.")
             return
 
-        if self.modo_edicion:
-            self._guardar_edicion_credencial(datos)
-            self.limpiar_formulario()
-            self.ui.stackedWidget.setCurrentWidget(self.ui.viewHome)
-            return
+        if self.edition_mode and self.credential_editing:
+            self._save_edition_credential(data)
+        else:
+            folio = self._save_new_credential(data)
+            complete_data = self.db.get_credential_by_folio(folio)
+            self.preview_ctrl.show_credential(complete_data)
 
-        folio = self._guardar_nueva_credencial(datos)
-        datos["FolioId"] = folio
+        self.ui.stackedWidget.setCurrentWidget(self.ui.credentialView)
+        self.clear_form()
 
+    def _save_new_credential(self, data):
+        """Genera folio y guarda una nueva credencial."""
         try:
-            ok_foto = guardar_archivo_temporal(
-                get_temp_foto_path(), get_foto_path(folio), "Foto"
-            )
-            ok_firma = guardar_archivo_temporal(
-                get_temp_firma_path(), get_firma_path(folio), "Firma"
-            )
-
-            if not ok_foto or not ok_firma:
-                QMessageBox.warning(self.ui.viewCaptura, "Advertencia", "Faltan archivos por guardar.")
-
+            clean_data = normalize_credential_data(data)
         except Exception as e:
-            QMessageBox.critical(self.ui.viewCaptura, "Error al guardar archivos", str(e))
-            return
+            QMessageBox.critical(self.mw.captureView, "Error de datos", f"No se pudo procesar la información: {e}")
+            return logging.warning(f"Error de datos: error: {e}")
 
-        self.preview_ctrl.mostrar_credencial(datos)
-        self.limpiar_formulario()
-        self.ui.stackedWidget.setCurrentWidget(self.ui.viewCredencial)
-
-    def _guardar_nueva_credencial(self, datos):
-        folio = self.db.generar_folio()
-        self._guardar_credencial_base(folio, datos, is_update=False)
+        folio = self.db.generate_folio()
+        self._save_credential_files_db(folio, clean_data, is_update=False)
         return folio
 
-    def _guardar_edicion_credencial(self, datos):
-        folio = self.credencial_editando.FolioId
-        self._guardar_credencial_base(folio, datos, is_update=True)
+    def _save_edition_credential(self, data):
+        """Guarda los cambios en una credencial existente."""
+        folio = self.credential_editing.FolioId
+        self._save_credential_files_db(folio, data, is_update=True)
+        complete_data = self.db.get_credential_by_folio(folio)
+        self.preview_ctrl.show_credential(complete_data)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.credentialView)
 
-    def _guardar_credencial_base(self, folio, datos, is_update):
-        ruta_foto = self._guardar_archivo_desde_label(self.ui.labelFoto, f"{folio}_foto.png", "foto")
-        ruta_firma = self._guardar_archivo_desde_label(self.ui.labelFirma, f"{folio}_firma.png", "firma")
+    def _save_credential_files_db(self, folio, data, is_update):
+        """Guarda los archivos (foto/firma) y actualiza la base de datos."""
+        photo_path = save_temporary_file(get_temp_foto_path(), get_foto_path(folio), "Foto")
+        signature_path = save_temporary_file(get_temp_firma_path(), get_firma_path(folio), "Firma")
 
-        datos.update({
-            "ruta_foto": ruta_foto,
-            "ruta_firma": ruta_firma,
+        # Agregar rutas sin volver a normalizar para no perder FechaAlta
+        data.update({
+            "RutaFoto": safe_path(photo_path),
+            "RutaFirma": safe_path(signature_path)
         })
+
         try:
-
             if is_update:
-                self.db.actualizar_credencial(folio, **datos)
-                QMessageBox.information(self.mw.viewCaptura, "Actualizado", f"Credencial {folio} editada correctamente.")
+                self.db.actualizar_credencial(folio, **data)
+                QMessageBox.information(self.mw.captureView, "Actualizado",
+                                        f"Credencial {folio} editada correctamente.")
             else:
-                self.db.insertar_credencial(**datos)
-                QMessageBox.information(self.mw.viewCaptura, "Guardado", f"Credencial {folio} guardada correctamente.")
-
-            self.credencial_actualizada.emit()
-
+                self.db.insertar_credencial(**data)
+                QMessageBox.information(self.mw.captureView, "Guardado", f"Credencial {folio} guardada correctamente.")
+            self.updated_credential.emit()
         except Exception as e:
-            QMessageBox.critical(self.mw.viewCaptura, "Error", f"No se pudo guardar: {e}")
+            QMessageBox.critical(self.mw.captureView, "Error", f"No se pudo guardar: {e}")
+            print(e)
 
-    def _guardar_archivo_desde_label(self, label, nombre_archivo, tipo):
-        if label.pixmap() is None:
-            return None
 
-        ruta = os.path.join("data", tipo, nombre_archivo)
-        Path(ruta).parent.mkdir(parents=True, exist_ok=True)
 
-        if self.modo_edicion and Path(ruta).exists():
-            respuesta = QMessageBox.question(
-                self.ui,
-                f"Reemplazar {tipo}",
-                f"Ya existe una {tipo} para este folio.\n¿Deseas reemplazarla?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            if respuesta != QMessageBox.StandardButton.Yes:
-                return ruta
-
-        guardar_imagen_desde_label(label, ruta)
-        return ruta
-
-    def cargar_para_edicion(self, credencial):
-        self.limpiar_formulario()
-        self.modo_edicion = True
-        self.credencial_editando = credencial
-
-        # Llenar campos
-        self.ui.nombre.setText(credencial.Nombre)
-        # ... el resto igual ...
-
-        # Foto
-        if credencial.RutaFoto and Path(credencial.RutaFoto).exists():
-            guardar_imagen_desde_label(self.ui.labelFoto, credencial.RutaFoto, modo='cargar')
-            self.camera_ctrl.estado = 2  # Repetir
-            self.ui.btnIniciarFoto.setText("Repetir")
-        else:
-            self.ui.labelFoto.clear()
-            self.ui.labelFoto.setText("Cámara no activa")
-            self.ui.labelFoto.setStyleSheet("color: gray; font-style: italic;")
-            self.camera_ctrl.estado = 0
-            self.ui.btnIniciarFoto.setText("Iniciar cámara")
-
-        # Firma
-        if credencial.RutaFirma and Path(credencial.RutaFirma).exists():
-            guardar_imagen_desde_label(self.ui.labelFirma, credencial.RutaFirma, modo='cargar')
-
-    def _obtener_folio_actual(self):
-        if self.modo_edicion and self.credencial_editando:
-            return self.credencial_editando.FolioId
-        return self.db.generar_folio()

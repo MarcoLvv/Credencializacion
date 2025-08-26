@@ -24,13 +24,22 @@ QWidget#buttonsBar {
 
 
 /* === BOTONES DEL MENÚ LATERAL === */
-QPushButton {
+#widgetbuttonsBarPhoto QPushButton {
     background-color: #2088BB;
     color: #FFFFFF;
     border-radius: 8px;
-    padding: 8px 16px;
     border: 1px solid #0E4F6B;
-    margin-bottom: 10px;
+}
+#widgetbuttonsBarPhoto QPushButton:hover {
+    background-color: #5CB0E5;
+    color: black;
+}
+#widgetbuttonsBarPhoto QPushButton:icon{
+    color: white;
+    }
+
+#widgetbuttonsBarPhoto QPushButton:pressed {
+    background-color: #0E4F6B;
 }
 
 #buttonsBar QPushButton {
@@ -40,7 +49,6 @@ QPushButton {
     padding: 8px;
     border-radius: 4px;
     font-weight: bold;
-    transition: background-color 0.3s ease; /* Para suavizar el cambio */
 }
 
 #buttonsBar QPushButton:hover {
@@ -54,26 +62,27 @@ QPushButton {
     );
 }
 
-QPushButton:hover {
-    background-color: #5CB0E5;
-    color: black;
+/* BOTONES DEL FRAME PARA IMPRIMIR*/
+#credentialBtns QPushButton {
+    background-color: #2088BB;
+    color: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #0E4F6B;
 }
 
-QPushButton:pressed {
-    background-color: #0E4F6B;
-}
+#credentialBtns QLabel, QCheckBox{
+    color: #FFFFFF}
+
 
 /* === FRAME CONTENEDOR DEL STACKED === */
-QFrame#index {
+QWidget#homeView {
     background-color: #D0E6F5;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
     padding: 16px;
-
-
 }
 
-QFrame#frameIndex {
+QFrame#homeFrame {
     background-color: #D0E6F5;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
@@ -89,7 +98,7 @@ QStackedWidget {
 
 }
 
-QWidget#viewCaptura{
+QWidget#captureView{
     alternate-background-color: #D0E6F5;
     background-color: #F0F4F8;
     color: #000000;
@@ -100,14 +109,13 @@ QWidget#viewCaptura{
 
 
 
-QFrame#frameDatosL{
-    background-color: #F0F4F8;
-    alternate-background-color: #D0E6F5;
-    color: #000000;
 
+#dataWidgetL QLabel {
+    color: #000000;
 }
-QFrame#frameDatosR{
-    background-color: #F0F4F8;
+
+
+#dataWidgetR QLabel{
     color: #000000;
 
 }
@@ -120,17 +128,6 @@ QFrame#frameFotoF{
 
 }
 
-QFrame#frameBtn{
-    background-color: transparent;
-
-}
-
-#viewCaptura QLabel{
-    color: #000000;
-}
-#viewCaptura QMessageBox{
-    color: white;
-}
 
 /* === TABLES === */
 QTableView {

@@ -1,12 +1,12 @@
 from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
 
-from src.models.credencial_model import TbcUsuariosDAO
 
 
 class UsuariosTableModel(QAbstractTableModel):
-    def __init__(self, data=None):
+    def __init__(self, data=None , model_dao = None):
         super().__init__()
         self._data = data or []
+        self.dao = model_dao
         self.columns = [
             ("ID", "Id"),
             ("Folio", "FolioId"),
@@ -15,6 +15,7 @@ class UsuariosTableModel(QAbstractTableModel):
             ("Materno", "Materno"),
             ("Sección Electoral", "SeccionElectoral"),
             ("Acciones", None),
+            #("Entregada", "Entregada"),  # ✅ NUEVA COLUMNA CON CHECKBOX
         ]
 
     def rowCount(self, parent=QModelIndex()):
@@ -29,22 +30,21 @@ class UsuariosTableModel(QAbstractTableModel):
 
         row = index.row()
         column = index.column()
-        if row >= len(self._data):
-            return None
-
         _, attr = self.columns[column]
         usuario = self._data[row]
 
+        if role == Qt.ItemDataRole.CheckStateRole and attr == "Entregada":
+            value = getattr(usuario, attr, False)
+            return Qt.CheckState.Checked if value else Qt.CheckState.Unchecked
+
         if role == Qt.ItemDataRole.DisplayRole:
-            if attr is None:
-                return ""
-            valor = getattr(usuario, attr, "")
-            return str(valor) if valor is not None else ""
+            if attr is None or attr == "Entregada":
+                return ""  # Evita que muestre "False"
+            return str(getattr(usuario, attr, ""))
+
 
         if role == Qt.ItemDataRole.TextAlignmentRole:
-            if attr is None:
-                return Qt.AlignmentFlag.AlignCenter
-            return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            return Qt.AlignmentFlag.AlignCenter if attr is None else Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
 
         return None
 
@@ -60,19 +60,29 @@ class UsuariosTableModel(QAbstractTableModel):
     def flags(self, index):
         if not index.isValid():
             return Qt.ItemFlag.ItemIsEnabled
-        return Qt.ItemFlag.ItemIsSelectable or Qt.ItemFlag.ItemIsEnabled
+
+        _, attr = self.columns[index.column()]
+
+        if attr == "Entregada":
+            return (
+                    Qt.ItemFlag.ItemIsEnabled |
+                    Qt.ItemFlag.ItemIsUserCheckable |
+                    Qt.ItemFlag.ItemIsSelectable
+            )
+
+        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
     def update_data(self, new_data):
         self.beginResetModel()
         self._data = new_data or []
         self.endResetModel()
 
-    def obtener_datos_fila(self, row):
+    def get_row_data(self, row):
         if 0 <= row < len(self._data):
             return self._data[row]
         return None
 
-    def actualizar_fila(self, row):
+    def update_row(self, row):
         if 0 <= row < len(self._data):
             top_left = self.index(row, 0)
             bottom_right = self.index(row, self.columnCount() - 1)
@@ -89,5 +99,27 @@ class UsuariosTableModel(QAbstractTableModel):
         )
         self.layoutChanged.emit()
 
-    def get_all_data(self):
-        return self._data
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
+        if not index.isValid():
+            return False
+
+        row = index.row()
+        column = index.column()
+        _, attr = self.columns[column]
+
+        if attr == "Entregada" and role == Qt.ItemDataRole.CheckStateRole:
+            usuario = self._data[row]
+            new_value = value == Qt.CheckState.Checked
+            setattr(usuario, attr, new_value)
+
+            # Guardar inmediatamente en DB
+            #from src.db.db_manager import DBManager
+            #DBManager().update(usuario)
+            self.dao.update(usuario)
+
+            self.dataChanged.emit(index, index, [role])
+            return True
+
+        return False
+
+

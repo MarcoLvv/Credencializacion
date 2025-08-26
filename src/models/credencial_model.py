@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, date
 from sqlalchemy import (
-    Column, Integer, String, Date, Boolean, inspect
+    Column, Integer, String, Date, inspect
 )
-from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, NoResultFound
 
 from src.config.database_config import Base, SessionLocal
 
@@ -14,47 +13,53 @@ class TbcUsuarios(Base):
 
     Id = Column(Integer, primary_key=True, autoincrement=True)
     FolioId = Column(String(25))
-    Nombre = Column(String(100), nullable=False)
-    Paterno = Column(String(100))
-    Materno = Column(String(100))
-    FechaNacimiento = Column(Date)
-    Genero = Column(String(10))
-    CURP = Column(String(20))
-    Calle = Column(String(100))
-    NumExterior = Column(String(10))
-    NumInterior = Column(String(10))
-    Manzana = Column(String(10))
-    Lote = Column(String(10))
-    Colonia = Column(String(100))
-    CodigoPostal = Column(String(10))
-    Municipio = Column(String(100))
-    EntidadId = Column(Integer)
-    Celular = Column(String(20))
-    Email = Column(String(100))
-    SeccionElectoral = Column(String(50))
-    RutaFoto = Column(String(255))
-    RutaFirma = Column(String(200))
-    RutaQR = Column(String(200))
-    NumImpresion = Column(Integer)
-    FechaAlta = Column(Date)
-    CredencialImpresa = Column(Boolean, default=False)
-    Entregada = Column(Boolean, default=False)
+    Nombre = Column(String(100), nullable=False, default="")
+    Paterno = Column(String(100), nullable=False, default="")
+    Materno = Column(String(100), nullable=False, default="")
+    FechaNacimiento = Column(Date, nullable=True)
+    Genero = Column(String(10), nullable=False, default="")
+    CURP = Column(String(20), nullable=False, default="")
+    Calle = Column(String(100), nullable=False, default="")
+    NumExterior = Column(String(10), nullable=False, default="")
+    NumInterior = Column(String(10), nullable=False, default="")
+    Manzana = Column(String(10), nullable=False, default="")
+    Lote = Column(String(10), nullable=False, default="")
+    Colonia = Column(String(100), nullable=False, default="")
+    CodigoPostal = Column(String(10), nullable=False, default="")
+    Municipio = Column(String(100), nullable=False, default="")
+    Entidad = Column(String(20), nullable=False, default="")
+    Celular = Column(String(10), nullable=False, default="")
+    Email = Column(String(100), nullable=False, default="")
+    SeccionElectoral = Column(String(20), nullable=False, default="")
+
+    Responsable = Column(String(50), nullable=False, default="")
+
+    RutaFoto = Column(String(255), nullable=False, default="")
+    RutaFirma = Column(String(200), nullable=False, default="")
+
+    FechaAlta = Column(Date, nullable=False, default=date.today)
+
+    VecesImpresa = Column(Integer, default=0)
+
 
     def __repr__(self):
         return f"<Usuario {self.FolioId} - {self.Nombre} {self.Paterno}>"
 
-    def _set_fecha(self, atributo: str, valor):
-        """Convierte una cadena a fecha y la asigna al atributo."""
-        if isinstance(valor, str):
+    def _set_date(self, attribute: str, value):
+        """Converts a string to a date and assigns it to the attribute."""
+        if isinstance(value, str):
             try:
-                valor = datetime.strptime(valor, "%Y-%m-%d").date()
+                value = datetime.strptime(value, "%Y-%m-%d").date()
             except ValueError:
-                print(f"⚠️ Fecha inválida para {atributo}: {valor}")
+                print(f"⚠️ Invalid date for {attribute}: {value}")
                 return
-        setattr(self, atributo, valor)
+        setattr(self, attribute, value)
 
-    def set_FechaNacimiento(self, valor): self._set_fecha("FechaNacimiento", valor)
-    def set_FechaAlta(self, valor): self._set_fecha("FechaAlta", valor)
+    def set_birth_date(self, value):
+        self._set_date("BirthDate", value)
+
+    def set_registration_date(self, value):
+        self._set_date("RegistrationDate", value)
 
 
 # DAO para TbcUsuarios
@@ -83,6 +88,27 @@ class TbcUsuariosDAO:
         except SQLAlchemyError as e:
             print(f"⚠️ Error al filtrar usuarios: {e}")
             return []
+
+    def update(self, usuario ):
+        """Actualiza un registro de TbcUsuarios en la base de datos."""
+        session = self.session_factory()
+        try:
+            existing = session.query(TbcUsuarios).filter_by(Id=usuario.Id).one()
+            for attr in vars(usuario):
+                if attr.startswith("_"):
+                    continue
+                if hasattr(existing, attr):
+                    setattr(existing, attr, getattr(usuario, attr))
+            session.commit()
+            return True
+        except NoResultFound:
+            print(f"[ERROR] Usuario con ID {usuario.Id} no encontrado.")
+        except SQLAlchemyError as e:
+            print(f"[ERROR] Error al actualizar usuario: {e}")
+            session.rollback()
+        finally:
+            session.close()
+        return False
 
 
 # 🔍 Funciones de validación para estructura de base de datos
